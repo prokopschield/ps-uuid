@@ -1,4 +1,7 @@
 mod methods;
+mod node_id;
+
+pub use node_id::{NodeId, NODE_ID_BYTES};
 
 pub const UUID_BYTES: usize = 16;
 
