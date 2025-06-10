@@ -1,3 +1,5 @@
+mod implementations;
+
 pub const NODE_ID_BYTES: usize = 6;
 
 /// A unique node identifier represented as a 6-byte array.
