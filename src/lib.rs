@@ -1,3 +1,5 @@
+mod methods;
+
 pub const BYTES: usize = 16;
 
 /// A UUID represented as a 16-byte array
