@@ -9,11 +9,11 @@ impl UUID {
 
 #[cfg(test)]
 mod tests {
-    use crate::{BYTES, UUID};
+    use crate::{UUID, UUID_BYTES};
 
     #[test]
     fn identity() {
-        let bytes = [42u8; BYTES];
+        let bytes = [42u8; UUID_BYTES];
         let uuid = UUID::from_bytes(bytes);
 
         assert_eq!(bytes, uuid.bytes, "Arrays should be identical.");
