@@ -1,4 +1,5 @@
 mod implementations;
+mod methods;
 
 pub const NODE_ID_BYTES: usize = 6;
 
