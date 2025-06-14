@@ -6,5 +6,6 @@ mod set_variant;
 mod variant;
 mod version;
 mod with_variant;
+mod with_version;
 
 pub use gen_ncs::GenNcsUuidError;
