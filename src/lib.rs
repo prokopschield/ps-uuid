@@ -1,9 +1,11 @@
 mod gregorian;
 mod methods;
 mod node_id;
+mod variant;
 
 pub use gregorian::Gregorian;
 pub use node_id::{NodeId, NODE_ID_BYTES};
+pub use variant::Variant;
 
 pub const UUID_BYTES: usize = 16;
 
