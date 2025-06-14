@@ -4,6 +4,7 @@ mod max;
 mod nil;
 mod set_variant;
 mod variant;
+mod version;
 mod with_variant;
 
 pub use gen_ncs::GenNcsUuidError;
