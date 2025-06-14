@@ -5,6 +5,7 @@ mod node_id;
 mod variant;
 
 pub use gregorian::Gregorian;
+pub use methods::GenNcsUuidError;
 pub use node_id::{NodeId, NODE_ID_BYTES};
 pub use variant::Variant;
 
