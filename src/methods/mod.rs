@@ -1,5 +1,6 @@
 mod from_bytes;
 mod max;
+mod new_dcom_from_parts;
 mod new_ncs;
 mod nil;
 mod set_variant;
