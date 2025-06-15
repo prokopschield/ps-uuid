@@ -1,6 +1,6 @@
 mod from_bytes;
-mod gen_ncs;
 mod max;
+mod new_ncs;
 mod nil;
 mod set_variant;
 mod set_version;
@@ -9,4 +9,4 @@ mod version;
 mod with_variant;
 mod with_version;
 
-pub use gen_ncs::GenNcsUuidError;
+pub use new_ncs::NcsUuidError;

@@ -8,7 +8,7 @@ const NCS_VARIANT_MASK: u8 = 0b1000_0000; // NCS variant bit (0xxx₂)
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(thiserror::Error, Debug)]
-pub enum GenNcsUuidError {
+pub enum NcsUuidError {
     #[error("Address family out of range")]
     AddressFamilyOutOfRange,
     #[error("Timestamp is before 1980-01-01")]
@@ -44,29 +44,29 @@ impl UUID {
     /// ```rust
     /// use std::time::{SystemTime, Duration};
     /// let time = SystemTime::UNIX_EPOCH + Duration::from_secs(315532800 + 3600);
-    /// let uuid = ps_uuid::UUID::gen_ncs(time, 2, &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07]);
+    /// let uuid = ps_uuid::UUID::new_ncs(time, 2, &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07]);
     /// ```
-    pub fn gen_ncs(
+    pub fn new_ncs(
         timestamp: SystemTime,
         address_family: u8,
         address: &[u8; 7],
-    ) -> Result<Self, GenNcsUuidError> {
+    ) -> Result<Self, NcsUuidError> {
         // Validate address family (0–13 for NCS compatibility)
         if address_family > 13 {
-            return Err(GenNcsUuidError::AddressFamilyOutOfRange);
+            return Err(NcsUuidError::AddressFamilyOutOfRange);
         }
 
         // Compute duration since NCS epoch (1980-01-01)
         let duration = timestamp
             .duration_since(UNIX_EPOCH + NCS_EPOCH)
-            .map_err(|_| GenNcsUuidError::TimestampBeforeEpoch)?;
+            .map_err(|_| NcsUuidError::TimestampBeforeEpoch)?;
 
         // Convert to 4-microsecond units
         let timestamp = duration.as_micros() / 4;
 
         // Check if timestamp fits in 48 bits
         if timestamp > MAX_TIMESTAMP.into() {
-            return Err(GenNcsUuidError::TimestampOverflow);
+            return Err(NcsUuidError::TimestampOverflow);
         }
 
         // Initialize 128-bit UUID bytes
@@ -97,10 +97,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_valid_ncs_uuid() -> Result<(), GenNcsUuidError> {
+    fn test_valid_ncs_uuid() -> Result<(), NcsUuidError> {
         let time = UNIX_EPOCH + NCS_EPOCH + Duration::from_secs(3600); // 1 hour after epoch
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
-        let uuid = UUID::gen_ncs(time, 2, &address)?;
+        let uuid = UUID::new_ncs(time, 2, &address)?;
         let bytes = uuid.as_bytes();
         // Check timestamp (3600s = 900,000,000 4μs units)
         let expected_timestamp = (900_000_000u64).to_be_bytes();
@@ -118,24 +118,21 @@ mod tests {
     fn test_timestamp_before_epoch() {
         let time = UNIX_EPOCH; // Before 1980
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
-        let result = UUID::gen_ncs(time, 2, &address);
-        assert!(matches!(result, Err(GenNcsUuidError::TimestampBeforeEpoch)));
+        let result = UUID::new_ncs(time, 2, &address);
+        assert!(matches!(result, Err(NcsUuidError::TimestampBeforeEpoch)));
     }
 
     #[test]
     fn test_invalid_address_family() {
         let time = UNIX_EPOCH + NCS_EPOCH + Duration::from_secs(3600);
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
-        let result = UUID::gen_ncs(time, 14, &address);
-        assert!(matches!(
-            result,
-            Err(GenNcsUuidError::AddressFamilyOutOfRange)
-        ));
+        let result = UUID::new_ncs(time, 14, &address);
+        assert!(matches!(result, Err(NcsUuidError::AddressFamilyOutOfRange)));
     }
 
     #[test]
-    fn test_nil_uuid() -> Result<(), GenNcsUuidError> {
-        let ncs_nil = UUID::gen_ncs(UNIX_EPOCH + NCS_EPOCH, 0, &[0, 0, 0, 0, 0, 0, 0])?;
+    fn test_nil_uuid() -> Result<(), NcsUuidError> {
+        let ncs_nil = UUID::new_ncs(UNIX_EPOCH + NCS_EPOCH, 0, &[0, 0, 0, 0, 0, 0, 0])?;
         let nil = UUID::nil();
 
         assert_eq!(ncs_nil, nil, "UUIDs should be equal.");
