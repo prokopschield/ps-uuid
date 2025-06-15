@@ -3,6 +3,7 @@ mod gen_ncs;
 mod max;
 mod nil;
 mod set_variant;
+mod set_version;
 mod variant;
 mod version;
 mod with_variant;
