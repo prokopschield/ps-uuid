@@ -2,12 +2,11 @@ use crate::{Variant, UUID};
 
 impl UUID {
     #[must_use]
-    pub fn version(&self) -> Option<u8> {
-        if self.variant() != Variant::OSF {
-            return None;
+    pub const fn version(&self) -> Option<u8> {
+        match self.variant() {
+            Variant::OSF => Some(self.bytes[6] >> 4),
+            _ => None,
         }
-
-        Some(self.bytes[6] >> 4)
     }
 }
 
