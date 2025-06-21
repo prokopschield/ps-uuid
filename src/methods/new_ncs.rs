@@ -84,12 +84,6 @@ impl UUID {
 
         Ok(Self { bytes })
     }
-
-    /// Returns the UUID as a byte array.
-    #[must_use]
-    pub const fn as_bytes(&self) -> &[u8; 16] {
-        &self.bytes
-    }
 }
 
 #[cfg(test)]

@@ -1,3 +1,4 @@
+mod as_bytes;
 mod from_bytes;
 mod max;
 mod new_dcom_from_parts;
