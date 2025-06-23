@@ -8,7 +8,7 @@ mod variant;
 
 pub use error::UuidConstructionError;
 pub use gregorian::Gregorian;
-pub use helpers::{to_hex, ToHex};
+pub use helpers::{md5, to_hex, Md5, ToHex};
 pub use methods::NcsUuidError;
 pub use node_id::{NodeId, NODE_ID_BYTES};
 pub use variant::Variant;
