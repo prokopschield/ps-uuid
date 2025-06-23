@@ -1,5 +1,6 @@
 mod error;
 mod gregorian;
+mod helpers;
 mod implementations;
 mod methods;
 mod node_id;
@@ -7,6 +8,7 @@ mod variant;
 
 pub use error::UuidConstructionError;
 pub use gregorian::Gregorian;
+pub use helpers::{to_hex, ToHex};
 pub use methods::NcsUuidError;
 pub use node_id::{NodeId, NODE_ID_BYTES};
 pub use variant::Variant;
