@@ -1,9 +1,11 @@
+mod error;
 mod gregorian;
 mod implementations;
 mod methods;
 mod node_id;
 mod variant;
 
+pub use error::UuidConstructionError;
 pub use gregorian::Gregorian;
 pub use methods::NcsUuidError;
 pub use node_id::{NodeId, NODE_ID_BYTES};
