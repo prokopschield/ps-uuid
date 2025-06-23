@@ -14,7 +14,7 @@ impl UUID {
     /// # Returns
     /// A UUID with the DCOM variant (0b110) set
     #[must_use]
-    pub fn new_dcom_from_parts(
+    pub fn from_parts_dcom(
         time_low: u32,
         time_mid: u16,
         time_hi_and_version: u16,
@@ -49,7 +49,7 @@ mod tests {
 
     #[test]
     fn test_new_dcom_from_parts_uuid() {
-        let uuid = UUID::new_dcom_from_parts(
+        let uuid = UUID::from_parts_dcom(
             0x1234_5678,
             0x9ABC,
             0xDEF0,
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_dcom_variant() {
-        let uuid = UUID::new_dcom_from_parts(
+        let uuid = UUID::from_parts_dcom(
             0,      // time_low
             0,      // time_mid
             0,      // time_hi_and_version
@@ -98,8 +98,7 @@ mod tests {
         let clock_seq = 0x1234;
         let node = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let uuid =
-            UUID::new_dcom_from_parts(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
 
         // Verify each field
         assert_eq!(
@@ -120,7 +119,7 @@ mod tests {
     #[test]
     fn test_dcom_uuid_variant_preservation() {
         // Create a UUID with a clock_seq that might interfere with variant bits
-        let uuid = UUID::new_dcom_from_parts(
+        let uuid = UUID::from_parts_dcom(
             0, 0, 0, 0xFFFF, // clock_seq with all bits set
             [0; 6],
         );
@@ -132,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_dcom_uuid_zero_values() {
-        let uuid = UUID::new_dcom_from_parts(0, 0, 0, 0, [0; 6]);
+        let uuid = UUID::from_parts_dcom(0, 0, 0, 0, [0; 6]);
 
         // Should be all zeros except for variant bits
         let mut expected = [0; 16];
@@ -143,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_dcom_uuid_max_values() {
-        let uuid = UUID::new_dcom_from_parts(u32::MAX, u16::MAX, u16::MAX, u16::MAX, [0xFF; 6]);
+        let uuid = UUID::from_parts_dcom(u32::MAX, u16::MAX, u16::MAX, u16::MAX, [0xFF; 6]);
 
         let expected = [
             0xFF, 0xFF, 0xFF, 0xFF, // time_low
@@ -164,8 +163,7 @@ mod tests {
         let clock_seq = 0xEFFF;
         let node = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB];
 
-        let uuid =
-            UUID::new_dcom_from_parts(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
 
         // Expected byte layout for DCOM UUID (little-endian for first three fields)
         let expected_bytes = [
@@ -187,8 +185,7 @@ mod tests {
         let clock_seq = 0;
         let node = [0; 6];
 
-        let uuid =
-            UUID::new_dcom_from_parts(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
 
         assert_eq!(uuid, UUID::nil().with_variant(Variant::DCOM));
     }
@@ -201,8 +198,7 @@ mod tests {
         let clock_seq = u16::MAX;
         let node = [0xFF; 6];
 
-        let uuid =
-            UUID::new_dcom_from_parts(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
 
         assert_eq!(uuid, UUID::max().with_variant(Variant::DCOM));
     }
@@ -215,8 +211,7 @@ mod tests {
         let clock_seq = 0x99AA;
         let node = [0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00];
 
-        let uuid =
-            UUID::new_dcom_from_parts(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
 
         // Check little-endian for time_low, time_mid, time_hi_and_version
         assert_eq!(uuid.bytes[0..4], [0x44, 0x33, 0x22, 0x11]); // time_low
