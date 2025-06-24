@@ -3,6 +3,7 @@ mod as_mut_bytes;
 mod from_bytes;
 mod from_parts_dcom;
 mod from_parts_ncs;
+mod from_parts_v1;
 mod gen_dcom;
 mod gen_ncs;
 mod max;
