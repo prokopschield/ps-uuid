@@ -5,6 +5,7 @@ mod from_bytes;
 mod from_parts_dcom;
 mod from_parts_ncs;
 mod from_parts_v1;
+mod from_parts_v2;
 mod gen_dcom;
 mod gen_ncs;
 mod gen_v1;
