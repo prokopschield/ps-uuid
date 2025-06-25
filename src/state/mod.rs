@@ -1,4 +1,5 @@
 mod implementations;
+mod methods;
 
 use std::{sync::Arc, time::SystemTime};
 
