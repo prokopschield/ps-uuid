@@ -6,7 +6,7 @@ mod methods;
 mod node_id;
 mod variant;
 
-pub use error::UuidConstructionError;
+pub use error::{DurationToTicksError, UuidConstructionError};
 pub use gregorian::Gregorian;
 pub use helpers::{md5, sha1, to_hex, Md5, Sha1, ToHex};
 pub use methods::NcsUuidError;
