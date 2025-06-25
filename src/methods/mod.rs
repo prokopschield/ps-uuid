@@ -13,6 +13,7 @@ mod new_ncs;
 mod nil;
 mod set_variant;
 mod set_version;
+mod system_time_to_ticks;
 mod variant;
 mod version;
 mod with_variant;
