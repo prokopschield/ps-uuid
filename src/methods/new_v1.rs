@@ -3,14 +3,16 @@ use std::time::SystemTime;
 
 impl UUID {
     /// Create an RFC 4122 version-1 (time-based) UUID
-    /// from a `SystemTime` and a 48-bit node identifier.
-    ///
-    /// A pseudo-random clock sequence value is used.
+    /// from a `SystemTime`, clock sequence, and a 48-bit node identifier.
     ///
     /// # Errors
     /// - `TimestampBeforeEpoch` is returned if `time` predates 1582-10-15.
     /// - `TimestampOverflow` is returned if `time` exceeds 5236-03-31.
-    pub fn new_v1(time: SystemTime, node_id: [u8; 6]) -> Result<Self, UuidConstructionError> {
+    pub fn new_v1(
+        time: SystemTime,
+        clock_seq: u16,
+        node_id: [u8; 6],
+    ) -> Result<Self, UuidConstructionError> {
         // ------------------------------------------------------------------
         // 1. Convert time -> 100 ns ticks since Gregorian epoch
         // ------------------------------------------------------------------
@@ -26,8 +28,6 @@ impl UUID {
         // ------------------------------------------------------------------
         // 3. Construct UUID
         // ------------------------------------------------------------------
-
-        let clock_seq: u16 = rand::random::<u16>() & 0x3FFF;
 
         Ok(Self::from_parts_v1(
             time_low, time_mid, time_hi, clock_seq, node_id,
@@ -61,7 +61,7 @@ mod tests {
         let t = UNIX_EPOCH + Duration::from_secs(1_700_000_000); // 2023-11-14
         let mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let auto = UUID::new_v1(t, mac).unwrap();
+        let auto = UUID::new_v1(t, rand::random(), mac).unwrap();
         let bytes = auto.as_bytes();
 
         // Structural guarantees -------------------------------------------
@@ -80,7 +80,7 @@ mod tests {
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
         let ancient = UNIX_EPOCH - Duration::from_secs(17_834_668_800);
-        let err = UUID::new_v1(ancient, [0; 6]).unwrap_err();
+        let err = UUID::new_v1(ancient, rand::random(), [0; 6]).unwrap_err();
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);
     }
 
@@ -92,13 +92,13 @@ mod tests {
                 u64::try_from(1u128 << 60).unwrap() / 10_000_000 + 12_219_292_800 + 10,
             );
 
-        let err = UUID::new_v1(too_far, [0; 6]).unwrap_err();
+        let err = UUID::new_v1(too_far, rand::random(), [0; 6]).unwrap_err();
         assert_eq!(err, UuidConstructionError::TimestampOverflow);
     }
 
     #[test]
     fn variant_and_version_bits_are_correct() {
-        let uuid = UUID::new_v1(SystemTime::now(), [1, 2, 3, 4, 5, 6]).unwrap();
+        let uuid = UUID::new_v1(SystemTime::now(), rand::random(), [1, 2, 3, 4, 5, 6]).unwrap();
         let b = uuid.as_bytes();
 
         // Variant = 10xxxxxx
@@ -114,7 +114,7 @@ mod tests {
 
         eprintln!("{before_gregorian:?}");
 
-        let err = UUID::new_v1(before_gregorian, [0; 6])
+        let err = UUID::new_v1(before_gregorian, rand::random(), [0; 6])
             .expect_err("timestamp prior to Gregorian epoch must fail");
 
         assert!(
@@ -129,7 +129,8 @@ mod tests {
         const MAX_TICKS: u64 = 0x0FFF_FFFF_FFFF_FFFF;
         let overflow = SystemTime::UNIX_EPOCH + Duration::from_nanos(MAX_TICKS + 1) * 100;
 
-        let err = UUID::new_v1(overflow, [0; 6]).expect_err("timestamp overflow must fail");
+        let err = UUID::new_v1(overflow, rand::random(), [0; 6])
+            .expect_err("timestamp overflow must fail");
 
         assert!(
             matches!(err, UuidConstructionError::TimestampOverflow),
