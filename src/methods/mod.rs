@@ -7,6 +7,7 @@ mod from_parts_ncs;
 mod from_parts_v1;
 mod gen_dcom;
 mod gen_ncs;
+mod gen_v1;
 mod max;
 mod new_dcom;
 mod new_ncs;
