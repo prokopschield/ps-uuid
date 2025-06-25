@@ -4,6 +4,7 @@ mod helpers;
 mod implementations;
 mod methods;
 mod node_id;
+mod state;
 mod variant;
 
 pub use error::{DurationToTicksError, UuidConstructionError};
@@ -11,6 +12,7 @@ pub use gregorian::Gregorian;
 pub use helpers::{md5, sha1, to_hex, Md5, Sha1, ToHex};
 pub use methods::NcsUuidError;
 pub use node_id::{NodeId, NODE_ID_BYTES};
+pub use state::{State, STATE};
 pub use variant::Variant;
 
 pub const UUID_BYTES: usize = 16;
