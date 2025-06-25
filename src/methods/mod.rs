@@ -13,6 +13,7 @@ mod new_dcom;
 mod new_ncs;
 mod new_v1;
 mod nil;
+mod node_id;
 mod set_variant;
 mod set_version;
 mod system_time_to_ticks;
