@@ -10,7 +10,7 @@ impl UUID {
     /// # Errors
     /// - `TimestampBeforeEpoch` is returned if `time` predates 1582-10-15.
     /// - `TimestampOverflow` is returned if `time` exceeds 5236-03-31.
-    pub fn new_v1(time: SystemTime, node_id: &[u8; 6]) -> Result<Self, UuidConstructionError> {
+    pub fn new_v1(time: SystemTime, node_id: [u8; 6]) -> Result<Self, UuidConstructionError> {
         // ------------------------------------------------------------------
         // 1. Convert time -> 100 ns ticks since Gregorian epoch
         // ------------------------------------------------------------------
@@ -53,7 +53,7 @@ mod tests {
         let time_hi = ((ticks >> 48) & 0x0FFF) as u16;
         let cs = 0x2A3Bu16; // arbitrary but deterministic for manual build
 
-        UUID::from_parts_v1(time_low, time_mid, time_hi, cs, &node)
+        UUID::from_parts_v1(time_low, time_mid, time_hi, cs, node)
     }
 
     #[test]
@@ -61,7 +61,7 @@ mod tests {
         let t = UNIX_EPOCH + Duration::from_secs(1_700_000_000); // 2023-11-14
         let mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let auto = UUID::new_v1(t, &mac).unwrap();
+        let auto = UUID::new_v1(t, mac).unwrap();
         let bytes = auto.as_bytes();
 
         // Structural guarantees -------------------------------------------
@@ -80,7 +80,7 @@ mod tests {
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
         let ancient = UNIX_EPOCH - Duration::from_secs(17_834_668_800);
-        let err = UUID::new_v1(ancient, &[0; 6]).unwrap_err();
+        let err = UUID::new_v1(ancient, [0; 6]).unwrap_err();
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);
     }
 
@@ -92,13 +92,13 @@ mod tests {
                 u64::try_from(1u128 << 60).unwrap() / 10_000_000 + 12_219_292_800 + 10,
             );
 
-        let err = UUID::new_v1(too_far, &[0; 6]).unwrap_err();
+        let err = UUID::new_v1(too_far, [0; 6]).unwrap_err();
         assert_eq!(err, UuidConstructionError::TimestampOverflow);
     }
 
     #[test]
     fn variant_and_version_bits_are_correct() {
-        let uuid = UUID::new_v1(SystemTime::now(), &[1, 2, 3, 4, 5, 6]).unwrap();
+        let uuid = UUID::new_v1(SystemTime::now(), [1, 2, 3, 4, 5, 6]).unwrap();
         let b = uuid.as_bytes();
 
         // Variant = 10xxxxxx

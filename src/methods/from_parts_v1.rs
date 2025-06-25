@@ -29,7 +29,7 @@ impl UUID {
         time_mid: u16,
         time_hi: u16,
         clock_seq: u16,
-        node_id: &[u8; 6],
+        node_id: [u8; 6],
     ) -> Self {
         let mut uuid = Self::nil();
 
@@ -42,7 +42,7 @@ impl UUID {
         uuid.bytes[8..10].copy_from_slice(&clock_seq.to_be_bytes());
 
         // Node id (48 bits) -------------------------------------------------
-        uuid.bytes[10..16].copy_from_slice(node_id);
+        uuid.bytes[10..16].copy_from_slice(&node_id);
 
         // Insert version + variant bits -------------------------------------
         uuid.with_version(1)
@@ -63,7 +63,7 @@ mod tests {
             0x89ab,
             0xcdef,
             0x1234,
-            &[0x00, 0x01, 0x02, 0x03, 0x04, 0x05],
+            [0x00, 0x01, 0x02, 0x03, 0x04, 0x05],
         );
         let b = uuid.as_bytes();
 
@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     fn nil_timestamp_yields_valid_uuid() {
-        let uuid = UUID::from_parts_v1(0, 0, 0, 0, &[0; 6]);
+        let uuid = UUID::from_parts_v1(0, 0, 0, 0, [0; 6]);
         assert_eq!(uuid.version(), Some(1));
         assert_eq!(uuid.variant(), Variant::OSF);
         // Only version & variant bits should be non-zero.
@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn byte_order_is_big_endian() {
-        let uuid = UUID::from_parts_v1(1, 1, 1, 1, &[0; 6]);
+        let uuid = UUID::from_parts_v1(1, 1, 1, 1, [0; 6]);
         let b = uuid.as_bytes();
         // Each field must appear in network order.
         eprintln!("{uuid:}");
