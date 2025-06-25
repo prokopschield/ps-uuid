@@ -35,7 +35,7 @@ impl UUID {
     }
 }
 
-#[allow(clippy::unwrap_used)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
@@ -105,5 +105,35 @@ mod tests {
         assert_eq!(b[8] >> 6, 0b10);
         // Version = 1
         assert_eq!(b[6] >> 4, 0b0001);
+    }
+
+    #[test]
+    fn new_v1_rejects_time_before_1582_10_15() {
+        // 1582-10-15 00:00:00 UTC is 12 216 652 800 s before the Unix epoch.
+        let before_gregorian = Gregorian::epoch() - Duration::from_secs(1);
+
+        eprintln!("{before_gregorian:?}");
+
+        let err = UUID::new_v1(before_gregorian, [0; 6])
+            .expect_err("timestamp prior to Gregorian epoch must fail");
+
+        assert!(
+            matches!(err, UuidConstructionError::TimestampBeforeEpoch),
+            "wrong error variant: got {err:?}"
+        );
+    }
+
+    #[test]
+    fn new_v1_rejects_time_after_5236_03_31() {
+        // One tick past the maximum 0x0FFF_FFFF_FFFF_FFFF timestamp (ticks are 100 ns).
+        const MAX_TICKS: u64 = 0x0FFF_FFFF_FFFF_FFFF;
+        let overflow = SystemTime::UNIX_EPOCH + Duration::from_nanos(MAX_TICKS + 1) * 100;
+
+        let err = UUID::new_v1(overflow, [0; 6]).expect_err("timestamp overflow must fail");
+
+        assert!(
+            matches!(err, UuidConstructionError::TimestampOverflow),
+            "wrong error variant: got {err:?}"
+        );
     }
 }
