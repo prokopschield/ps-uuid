@@ -2,6 +2,7 @@ mod implementations;
 
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 
@@ -9,7 +10,7 @@ use crate::NodeId;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct State {
-    pub last_ts: u64,
+    pub last_ts: DateTime<Utc>,
     pub node_id: NodeId,
     pub seq: u16,
 }
