@@ -10,6 +10,7 @@ mod gen_ncs;
 mod max;
 mod new_dcom;
 mod new_ncs;
+mod new_v1;
 mod nil;
 mod set_variant;
 mod set_version;
