@@ -21,6 +21,7 @@ mod new_v1;
 mod new_v2;
 mod new_v3;
 mod new_v4;
+mod new_v5;
 mod nil;
 mod node_id;
 mod set_variant;
