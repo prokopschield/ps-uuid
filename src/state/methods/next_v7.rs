@@ -2,12 +2,12 @@ use std::time::{Duration, SystemTime};
 
 use crate::State;
 
-const FIDELITY: Duration = Duration::from_nanos(4);
+const FIDELITY: Duration = Duration::from_nanos(256);
 
 impl State {
     /// This method returns the next `UUIDv7`'s timestamp.
     ///
-    /// 1. Increments this [`State`]'s timestamp by 4 ns,
+    /// 1. Increments this [`State`]'s timestamp by 256 ns,
     /// 2. compares this with the timestamp provided, keeping the greater of the two,
     /// 3. replaces this [`State`]'s timestamp with the value,
     /// 4. returns the value.
