@@ -9,6 +9,7 @@ mod from_parts_v2;
 mod from_parts_v3;
 mod from_parts_v4;
 mod from_parts_v5;
+mod from_parts_v6;
 mod gen_dcom;
 mod gen_ncs;
 mod gen_v1;
