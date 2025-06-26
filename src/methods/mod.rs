@@ -15,6 +15,7 @@ mod gen_ncs;
 mod gen_v1;
 mod gen_v2;
 mod gen_v4;
+mod gen_v6;
 mod max;
 mod new_dcom;
 mod new_ncs;
