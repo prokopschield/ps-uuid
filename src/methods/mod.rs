@@ -18,6 +18,7 @@ mod new_dcom;
 mod new_ncs;
 mod new_v1;
 mod new_v2;
+mod new_v3;
 mod new_v4;
 mod nil;
 mod node_id;

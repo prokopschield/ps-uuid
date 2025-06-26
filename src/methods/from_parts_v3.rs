@@ -19,10 +19,12 @@ impl UUID {
 // ────────────────────────────────────────────────────────────────────────────
 // Tests
 // ────────────────────────────────────────────────────────────────────────────
-#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_possible_truncation, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
-    use crate::UUID;
+    use std::str::FromStr;
+
+    use crate::{md5, UUID};
 
     // Helper: RFC-4122 variant check (two MSBs = 10)
     const fn is_rfc4122_variant(b: u8) -> bool {
@@ -57,5 +59,23 @@ mod tests {
                 _ => assert_eq!(uuid.bytes[i], digest[i]),
             }
         }
+    }
+
+    #[test]
+    fn matches_gen_v3_reference_implementation() {
+        // Reference data from RFC 4122, Appendix C:
+        // namespace = DNS (6ba7b810-9dad-11d1-80b4-00c04fd430c8)
+        // name      = "python.org"
+        let ns = UUID::from_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8").unwrap();
+        let name = b"python.org";
+
+        // v3 via the public constructor
+        let via_api = UUID::new_v3(&ns, name);
+
+        // Compute digest directly and call `from_parts_v3`
+        let digest = md5(&[&ns.bytes[..], name].concat());
+        let via_parts = UUID::from_parts_v3(digest);
+
+        assert_eq!(via_parts.bytes, via_api.bytes);
     }
 }
