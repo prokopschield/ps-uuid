@@ -1,5 +1,6 @@
 mod as_bytes;
 mod as_mut_bytes;
+mod clock_seq;
 mod duration_to_ticks;
 mod from_bytes;
 mod from_parts_dcom;
