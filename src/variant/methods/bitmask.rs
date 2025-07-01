@@ -4,7 +4,7 @@ impl Variant {
     #[must_use]
     pub const fn bitmask(self) -> u8 {
         match self {
-            Self::NSC => 0x0F,
+            Self::NCS => 0x0F,
             Self::OSF => 0xBF,
             Self::DCOM => 0xDF,
             Self::Reserved => 0xFF,
@@ -22,11 +22,11 @@ mod tests {
         // A comprehensive test must therefore verify the output for each
         // possible input variant.
 
-        // 1. Test the NSC variant
+        // 1. Test the NCS variant
         assert_eq!(
-            Variant::NSC.bitmask(),
+            Variant::NCS.bitmask(),
             0x0F,
-            "The bitmask for Variant::NSC must be 0x0F"
+            "The bitmask for Variant::NCS must be 0x0F"
         );
 
         // 2. Test the OSF variant

@@ -35,7 +35,7 @@ impl UUID {
         // Set node ID (bytes 9–15)
         uuid.bytes[9..16].copy_from_slice(address);
 
-        uuid.with_variant(crate::Variant::NSC)
+        uuid.with_variant(crate::Variant::NCS)
     }
 }
 

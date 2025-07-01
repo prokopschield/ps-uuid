@@ -23,10 +23,10 @@ mod tests {
     }
 
     #[test]
-    fn with_variant_nsc() {
+    fn with_variant_ncs() {
         let uuid = make_uuid_with_byte_8(0xFF);
-        let result = uuid.with_variant(Variant::NSC);
-        assert_eq!(result.variant(), Variant::NSC);
+        let result = uuid.with_variant(Variant::NCS);
+        assert_eq!(result.variant(), Variant::NCS);
         assert_eq!(result.bytes[8] & 0x80, 0x00);
     }
 
@@ -87,7 +87,7 @@ mod tests {
         let uuid = make_uuid_with_byte_8(0x00);
 
         let result = uuid
-            .with_variant(Variant::NSC)
+            .with_variant(Variant::NCS)
             .with_variant(Variant::OSF)
             .with_variant(Variant::DCOM)
             .with_variant(Variant::Reserved);

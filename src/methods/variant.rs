@@ -4,7 +4,7 @@ impl UUID {
     #[must_use]
     pub const fn variant(&self) -> Variant {
         match self.bytes[8] {
-            0x00..=0x7F => Variant::NSC,
+            0x00..=0x7F => Variant::NCS,
             0x80..=0xBF => Variant::OSF,
             0xC0..=0xDF => Variant::DCOM,
             0xE0..=0xFF => Variant::Reserved,
@@ -26,21 +26,21 @@ mod tests {
     }
 
     #[test]
-    fn test_variant_nsc() {
+    fn test_variant_ncs() {
         // The variant bits are 0xx...
         // This corresponds to the byte range 0x00..=0x7F.
 
         // Test lower boundary
         let uuid_lower = create_uuid_with_variant_byte(0x00);
-        assert_eq!(uuid_lower.variant(), Variant::NSC);
+        assert_eq!(uuid_lower.variant(), Variant::NCS);
 
         // Test a value within the range
         let uuid_middle = create_uuid_with_variant_byte(0x42);
-        assert_eq!(uuid_middle.variant(), Variant::NSC);
+        assert_eq!(uuid_middle.variant(), Variant::NCS);
 
         // Test upper boundary
         let uuid_upper = create_uuid_with_variant_byte(0x7F);
-        assert_eq!(uuid_upper.variant(), Variant::NSC);
+        assert_eq!(uuid_upper.variant(), Variant::NCS);
     }
 
     #[test]

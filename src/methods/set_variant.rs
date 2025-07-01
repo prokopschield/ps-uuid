@@ -18,10 +18,10 @@ mod tests {
     }
 
     #[test]
-    fn set_variant_nsc() {
+    fn set_variant_ncs() {
         let mut uuid = make_uuid_with_byte_8(0xFF);
-        uuid.set_variant(Variant::NSC);
-        assert_eq!(uuid.variant(), Variant::NSC);
+        uuid.set_variant(Variant::NCS);
+        assert_eq!(uuid.variant(), Variant::NCS);
         assert_eq!(uuid.bytes[8] & 0x80, 0x00);
     }
 
@@ -69,8 +69,8 @@ mod tests {
     fn set_variant_can_change_variants() {
         let mut uuid = make_uuid_with_byte_8(0x00);
 
-        uuid.set_variant(Variant::NSC);
-        assert_eq!(uuid.variant(), Variant::NSC);
+        uuid.set_variant(Variant::NCS);
+        assert_eq!(uuid.variant(), Variant::NCS);
 
         uuid.set_variant(Variant::OSF);
         assert_eq!(uuid.variant(), Variant::OSF);

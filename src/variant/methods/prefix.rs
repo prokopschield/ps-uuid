@@ -4,7 +4,7 @@ impl Variant {
     #[must_use]
     pub const fn prefix(self) -> u8 {
         match self {
-            Self::NSC => 0x00,
+            Self::NCS => 0x00,
             Self::OSF => 0x80,
             Self::DCOM => 0xC0,
             Self::Reserved => 0xE0,
@@ -17,8 +17,8 @@ mod tests {
     use super::Variant;
 
     #[test]
-    fn nsc_prefix_is_zero() {
-        assert_eq!(Variant::NSC.prefix(), 0x00);
+    fn ncs_prefix_is_zero() {
+        assert_eq!(Variant::NCS.prefix(), 0x00);
     }
 
     #[test]
@@ -39,7 +39,7 @@ mod tests {
     #[test]
     fn prefix_values_are_distinct() {
         let prefixes = [
-            Variant::NSC.prefix(),
+            Variant::NCS.prefix(),
             Variant::OSF.prefix(),
             Variant::DCOM.prefix(),
             Variant::Reserved.prefix(),
@@ -54,8 +54,8 @@ mod tests {
 
     #[test]
     fn prefix_preserves_variant_bit_pattern() {
-        // NSC: 0b0xxxxxxx
-        assert_eq!(Variant::NSC.prefix() & 0x80, 0x00);
+        // NCS: 0b0xxxxxxx
+        assert_eq!(Variant::NCS.prefix() & 0x80, 0x00);
 
         // OSF: 0b10xxxxxx
         assert_eq!(Variant::OSF.prefix() & 0xC0, 0x80);

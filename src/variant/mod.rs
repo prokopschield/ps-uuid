@@ -2,8 +2,8 @@ mod methods;
 
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Variant {
-    /// The Apollo NCS variant is for backwards compatibility with the Apollo NSC UUID format.
-    NSC = 0,
+    /// The Apollo NCS variant is for backwards compatibility with the Apollo NCS UUID format.
+    NCS = 0,
 
     #[default]
     /// This is the standard, default variant of UUID.
