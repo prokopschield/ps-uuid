@@ -42,7 +42,7 @@ mod tests {
             let modified_uuid = uuid.with_version(version);
             // Check version is set correctly using version()
             assert_eq!(
-                modified_uuid.version(),
+                modified_uuid.get_version(),
                 Some(version),
                 "Version should be set to {version}"
             );
@@ -77,7 +77,7 @@ mod tests {
 
         let modified_uuid = uuid.with_version(0);
         assert_eq!(
-            modified_uuid.version(),
+            modified_uuid.get_version(),
             Some(0),
             "Version should be set to 0"
         );
@@ -109,7 +109,7 @@ mod tests {
 
         let modified_uuid = uuid.with_version(15);
         assert_eq!(
-            modified_uuid.version(),
+            modified_uuid.get_version(),
             Some(15),
             "Version should be set to 15"
         );
@@ -145,7 +145,7 @@ mod tests {
 
         let modified_uuid = uuid.with_version(3);
         assert_eq!(
-            modified_uuid.version(),
+            modified_uuid.get_version(),
             Some(3),
             "Version should be set to 3"
         );
@@ -168,10 +168,10 @@ mod tests {
             uuid_v1.bytes, uuid_v1_again.bytes,
             "Repeated calls with same version should be idempotent"
         );
-        assert_eq!(uuid_v1_again.version(), Some(1), "Version should remain 1");
+        assert_eq!(uuid_v1_again.get_version(), Some(1), "Version should remain 1");
 
         let uuid_v2 = uuid_v1.with_version(2);
-        assert_eq!(uuid_v2.version(), Some(2), "Version should change to 2");
+        assert_eq!(uuid_v2.get_version(), Some(2), "Version should change to 2");
         assert!(has_osf_variant(&uuid_v2), "OSF variant should persist");
     }
 
@@ -188,7 +188,7 @@ mod tests {
 
         let modified_uuid = uuid.with_version(4);
         assert_eq!(
-            modified_uuid.version(),
+            modified_uuid.get_version(),
             Some(4),
             "Version should be set to 4"
         );
@@ -214,7 +214,7 @@ mod tests {
         let uuid_with_version = uuid.with_version(5);
         let uuid_with_version_again = uuid_with_version.with_version(3);
         assert_eq!(
-            uuid_with_version_again.version(),
+            uuid_with_version_again.get_version(),
             Some(3),
             "Version should be updated to 3"
         );

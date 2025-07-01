@@ -65,8 +65,8 @@ mod tests {
         let bytes = auto.as_bytes();
 
         // Structural guarantees -------------------------------------------
-        assert_eq!(auto.version(), Some(1));
-        assert_eq!(auto.variant(), Variant::OSF);
+        assert_eq!(auto.get_version(), Some(1));
+        assert_eq!(auto.get_variant(), Variant::OSF);
 
         // Check timestamp and node id equality except for the clock sequence
         let manual = manual(t, mac);

@@ -21,7 +21,7 @@ mod tests {
     fn set_variant_ncs() {
         let mut uuid = make_uuid_with_byte_8(0xFF);
         uuid.set_variant(Variant::NCS);
-        assert_eq!(uuid.variant(), Variant::NCS);
+        assert_eq!(uuid.get_variant(), Variant::NCS);
         assert_eq!(uuid.bytes[8] & 0x80, 0x00);
     }
 
@@ -29,7 +29,7 @@ mod tests {
     fn set_variant_osf() {
         let mut uuid = make_uuid_with_byte_8(0x00);
         uuid.set_variant(Variant::OSF);
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_variant(), Variant::OSF);
         assert_eq!(uuid.bytes[8] & 0xC0, 0x80);
     }
 
@@ -37,7 +37,7 @@ mod tests {
     fn set_variant_dcom() {
         let mut uuid = make_uuid_with_byte_8(0x3F);
         uuid.set_variant(Variant::DCOM);
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
         assert_eq!(uuid.bytes[8] & 0xE0, 0xC0);
     }
 
@@ -45,7 +45,7 @@ mod tests {
     fn set_variant_reserved() {
         let mut uuid = make_uuid_with_byte_8(0x00);
         uuid.set_variant(Variant::Reserved);
-        assert_eq!(uuid.variant(), Variant::Reserved);
+        assert_eq!(uuid.get_variant(), Variant::Reserved);
         assert_eq!(uuid.bytes[8] & 0xE0, 0xE0);
     }
 
@@ -70,16 +70,16 @@ mod tests {
         let mut uuid = make_uuid_with_byte_8(0x00);
 
         uuid.set_variant(Variant::NCS);
-        assert_eq!(uuid.variant(), Variant::NCS);
+        assert_eq!(uuid.get_variant(), Variant::NCS);
 
         uuid.set_variant(Variant::OSF);
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_variant(), Variant::OSF);
 
         uuid.set_variant(Variant::DCOM);
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
 
         uuid.set_variant(Variant::Reserved);
-        assert_eq!(uuid.variant(), Variant::Reserved);
+        assert_eq!(uuid.get_variant(), Variant::Reserved);
     }
 
     #[test]

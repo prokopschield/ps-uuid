@@ -2,7 +2,7 @@ use crate::{Variant, UUID};
 
 impl UUID {
     #[must_use]
-    pub const fn variant(&self) -> Variant {
+    pub const fn get_variant(&self) -> Variant {
         match self.bytes[8] {
             0x00..=0x7F => Variant::NCS,
             0x80..=0xBF => Variant::OSF,
@@ -32,15 +32,15 @@ mod tests {
 
         // Test lower boundary
         let uuid_lower = create_uuid_with_variant_byte(0x00);
-        assert_eq!(uuid_lower.variant(), Variant::NCS);
+        assert_eq!(uuid_lower.get_variant(), Variant::NCS);
 
         // Test a value within the range
         let uuid_middle = create_uuid_with_variant_byte(0x42);
-        assert_eq!(uuid_middle.variant(), Variant::NCS);
+        assert_eq!(uuid_middle.get_variant(), Variant::NCS);
 
         // Test upper boundary
         let uuid_upper = create_uuid_with_variant_byte(0x7F);
-        assert_eq!(uuid_upper.variant(), Variant::NCS);
+        assert_eq!(uuid_upper.get_variant(), Variant::NCS);
     }
 
     #[test]
@@ -51,15 +51,15 @@ mod tests {
 
         // Test lower boundary
         let uuid_lower = create_uuid_with_variant_byte(0x80);
-        assert_eq!(uuid_lower.variant(), Variant::OSF);
+        assert_eq!(uuid_lower.get_variant(), Variant::OSF);
 
         // Test a value within the range (e.g., from a v4 UUID)
         let uuid_middle = create_uuid_with_variant_byte(0xA9);
-        assert_eq!(uuid_middle.variant(), Variant::OSF);
+        assert_eq!(uuid_middle.get_variant(), Variant::OSF);
 
         // Test upper boundary
         let uuid_upper = create_uuid_with_variant_byte(0xBF);
-        assert_eq!(uuid_upper.variant(), Variant::OSF);
+        assert_eq!(uuid_upper.get_variant(), Variant::OSF);
     }
 
     #[test]
@@ -69,15 +69,15 @@ mod tests {
 
         // Test lower boundary
         let uuid_lower = create_uuid_with_variant_byte(0xC0);
-        assert_eq!(uuid_lower.variant(), Variant::DCOM);
+        assert_eq!(uuid_lower.get_variant(), Variant::DCOM);
 
         // Test a value within the range
         let uuid_middle = create_uuid_with_variant_byte(0xCB);
-        assert_eq!(uuid_middle.variant(), Variant::DCOM);
+        assert_eq!(uuid_middle.get_variant(), Variant::DCOM);
 
         // Test upper boundary
         let uuid_upper = create_uuid_with_variant_byte(0xDF);
-        assert_eq!(uuid_upper.variant(), Variant::DCOM);
+        assert_eq!(uuid_upper.get_variant(), Variant::DCOM);
     }
 
     #[test]
@@ -87,14 +87,14 @@ mod tests {
 
         // Test lower boundary
         let uuid_lower = create_uuid_with_variant_byte(0xE0);
-        assert_eq!(uuid_lower.variant(), Variant::Reserved);
+        assert_eq!(uuid_lower.get_variant(), Variant::Reserved);
 
         // Test a value within the range
         let uuid_middle = create_uuid_with_variant_byte(0xF0);
-        assert_eq!(uuid_middle.variant(), Variant::Reserved);
+        assert_eq!(uuid_middle.get_variant(), Variant::Reserved);
 
         // Test upper boundary
         let uuid_upper = create_uuid_with_variant_byte(0xFF);
-        assert_eq!(uuid_upper.variant(), Variant::Reserved);
+        assert_eq!(uuid_upper.get_variant(), Variant::Reserved);
     }
 }

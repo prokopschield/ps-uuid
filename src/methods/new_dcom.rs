@@ -79,7 +79,7 @@ mod tests {
         assert!(result.is_ok());
 
         let uuid = result.unwrap();
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
     #[test]
@@ -91,7 +91,7 @@ mod tests {
         assert!(result.is_ok());
 
         let uuid = result.unwrap();
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
     #[test]
@@ -220,7 +220,7 @@ mod tests {
         assert!(result.is_ok());
 
         let uuid = result.unwrap();
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
     #[test]

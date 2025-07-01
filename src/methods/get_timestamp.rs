@@ -13,8 +13,8 @@ impl UUID {
     ///
     /// Returns `None` if the UUID does not encode a timestamp.
     #[must_use]
-    pub fn timestamp(&self) -> Option<SystemTime> {
-        match (self.version(), self.variant()) {
+    pub fn get_timestamp(&self) -> Option<SystemTime> {
+        match (self.get_version(), self.get_variant()) {
             // v1/v2: 60-bit timestamp, 100ns intervals since 1582-10-15
             (Some(1 | 2), crate::Variant::OSF) => {
                 let time_low = u32::from_be_bytes([
@@ -123,7 +123,7 @@ mod tests {
     fn v1_and_v2_timestamp_roundtrip() {
         let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
         let uuid = UUID::from_parts_v1(0x6fc1_0000, 0x86f2, 0x23, 0x1234, [1, 2, 3, 4, 5, 6]);
-        let ts = uuid.timestamp().unwrap();
+        let ts = uuid.get_timestamp().unwrap();
         assert_eq!(ts, t, "v1 timestamp roundtrip failed");
     }
 
@@ -131,7 +131,7 @@ mod tests {
     fn v6_timestamp_roundtrip() {
         let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
         let uuid = UUID::from_parts_v6(0x0238_6f26, 0xfc10, 0x6000, 0x1234, [1, 2, 3, 4, 5, 6]);
-        let ts = uuid.timestamp().unwrap();
+        let ts = uuid.get_timestamp().unwrap();
         assert_eq!(ts, t, "v6 timestamp roundtrip failed");
     }
 
@@ -139,7 +139,7 @@ mod tests {
     fn v7_timestamp_roundtrip() {
         let ms = 1_700_000_000_000u64;
         let uuid = UUID::from_parts_v7(ms, 0, 0);
-        let ts = uuid.timestamp().unwrap();
+        let ts = uuid.get_timestamp().unwrap();
         let expected = UNIX_EPOCH + Duration::from_millis(ms);
         assert_eq!(ts, expected, "v7 timestamp roundtrip failed");
     }
@@ -150,7 +150,7 @@ mod tests {
         let t = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
         let node = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
         let uuid = UUID::new_dcom(t, node).unwrap();
-        let ts = uuid.timestamp().unwrap();
+        let ts = uuid.get_timestamp().unwrap();
         assert_eq!(ts, t, "DCOM timestamp roundtrip failed");
     }
 
@@ -161,7 +161,7 @@ mod tests {
         let t = ncs_epoch + Duration::from_secs(1_000_000);
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
         let uuid = UUID::new_ncs(t, 1, &address).unwrap();
-        let ts = uuid.timestamp().unwrap();
+        let ts = uuid.get_timestamp().unwrap();
         eprintln!("{t:?} {ts:?}");
         assert_eq!(ts, t, "NCS timestamp roundtrip failed");
     }
@@ -173,7 +173,7 @@ mod tests {
             bytes[6] = v << 4;
             let uuid = UUID::from_parts_v8(bytes);
             assert!(
-                uuid.timestamp().is_none(),
+                uuid.get_timestamp().is_none(),
                 "Non-time-based v{v} should return None"
             );
         }
@@ -186,8 +186,8 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant (10xx xxxx)
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.version(), Some(1));
-        assert!(uuid.timestamp().is_some());
+        assert_eq!(uuid.get_version(), Some(1));
+        assert!(uuid.get_timestamp().is_some());
     }
 
     #[test]
@@ -197,8 +197,8 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.version(), Some(2));
-        assert!(uuid.timestamp().is_some());
+        assert_eq!(uuid.get_version(), Some(2));
+        assert!(uuid.get_timestamp().is_some());
     }
 
     #[test]
@@ -208,8 +208,8 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.version(), Some(3));
-        assert_eq!(uuid.timestamp(), None);
+        assert_eq!(uuid.get_version(), Some(3));
+        assert_eq!(uuid.get_timestamp(), None);
     }
 
     #[test]
@@ -219,8 +219,8 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.version(), Some(4));
-        assert_eq!(uuid.timestamp(), None);
+        assert_eq!(uuid.get_version(), Some(4));
+        assert_eq!(uuid.get_timestamp(), None);
     }
 
     #[test]
@@ -230,8 +230,8 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant
         let uuid: UUID = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.version(), Some(5));
-        assert_eq!(uuid.timestamp(), None);
+        assert_eq!(uuid.get_version(), Some(5));
+        assert_eq!(uuid.get_timestamp(), None);
     }
 
     // ---------- variant tests -------------------------------------------------
@@ -243,7 +243,7 @@ mod tests {
         bytes[8] = 0x00; // NCS variant (0xxx xxxx)
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.variant(), Variant::NCS);
+        assert_eq!(uuid.get_variant(), Variant::NCS);
     }
 
     #[test]
@@ -253,7 +253,7 @@ mod tests {
         bytes[8] = 0x80; // RFC 4122 variant (10xx xxxx)
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod tests {
         bytes[8] = 0xC0; // Microsoft variant (110x xxxx)
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.variant(), Variant::DCOM);
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
     #[test]
@@ -273,7 +273,7 @@ mod tests {
         bytes[8] = 0xE0; // Future variant (111x xxxx)
         let uuid = UUID::from_bytes(bytes);
         assert_eq!(uuid.as_bytes(), &bytes);
-        assert_eq!(uuid.variant(), Variant::Reserved);
+        assert_eq!(uuid.get_variant(), Variant::Reserved);
     }
 
     // UUID (and Microsoft file-time) tick = 100 ns
@@ -305,7 +305,7 @@ mod tests {
         b[7] = time_hi_ver as u8;
         b[8] = 0x80; // RFC-4122 variant
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.timestamp(), Some(SystemTime::UNIX_EPOCH));
+        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
     }
 
     #[test]
@@ -326,7 +326,7 @@ mod tests {
         b[7] = time_hi_ver as u8;
         b[8] = 0x80;
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.timestamp(), Some(SystemTime::UNIX_EPOCH));
+        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
     }
 
     #[test]
@@ -347,7 +347,7 @@ mod tests {
         b[7] = lo_ver as u8;
         b[8] = 0x80;
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.timestamp(), Some(SystemTime::UNIX_EPOCH));
+        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
     }
 
     // ------------------------- version 7 (msec since UNIX) -------------------
@@ -359,7 +359,7 @@ mod tests {
         b[6] = 0x70; // set version 7
         b[8] = 0x80; // RFC-4122 variant
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.timestamp(), Some(SystemTime::UNIX_EPOCH));
+        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
     }
 
     // ------------------------- NCS variant (4 µs since 1980) ------------------
@@ -369,7 +369,7 @@ mod tests {
         // ticks = 0 → 1980-01-01
         let uuid = UUID::from_bytes([0u8; 16]); // variant bit = 0
         let expected = SystemTime::UNIX_EPOCH + Duration::from_secs(SECS_1970_TO_1980);
-        assert_eq!(uuid.timestamp(), Some(expected));
+        assert_eq!(uuid.get_timestamp(), Some(expected));
     }
 
     // --------------------- Microsoft / DCOM variant (file-time) --------------
@@ -394,6 +394,6 @@ mod tests {
         b[7] = (hi >> 8) as u8;
         b[8] = 0xC0; // Microsoft variant (110x xxxx)
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.timestamp(), Some(SystemTime::UNIX_EPOCH));
+        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
     }
 }

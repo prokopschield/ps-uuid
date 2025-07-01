@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn version_and_variant_methods_report_correctly() {
         let uuid = UUID::gen_v4();
-        assert_eq!(uuid.version(), Some(4));
+        assert_eq!(uuid.get_version(), Some(4));
         // If you have a variant() method, you can check it here as well.
     }
 }

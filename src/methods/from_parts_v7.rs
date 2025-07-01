@@ -92,8 +92,8 @@ mod tests {
         assert_eq!(&b[9..16], &rb_expected[1..8]);
 
         // Version / Variant
-        assert_eq!(uuid.version(), Some(7));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(7));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
         assert_eq!(version(b), 0b0111);
         assert_eq!(variant(b), 0b10);
     }
@@ -105,8 +105,8 @@ mod tests {
         expected[6] = 0x70; // version nibble
         expected[8] = 0x80; // variant bits
         assert_eq!(uuid.as_bytes(), &expected);
-        assert_eq!(uuid.version(), Some(7));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(7));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 
     #[test]

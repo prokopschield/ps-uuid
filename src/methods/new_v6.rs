@@ -57,8 +57,8 @@ mod tests {
         let bytes = auto.as_bytes();
 
         // Structural guarantees
-        assert_eq!(auto.version(), Some(6));
-        assert_eq!(auto.variant(), Variant::OSF);
+        assert_eq!(auto.get_version(), Some(6));
+        assert_eq!(auto.get_variant(), Variant::OSF);
 
         // Timestamp (first 8 bytes) must match reference
         let manual = manual(t, mac);

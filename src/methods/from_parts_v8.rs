@@ -73,8 +73,8 @@ mod tests {
     #[test]
     fn version_and_variant_are_reported() {
         let uuid = UUID::from_parts_v8([0u8; 16]);
-        assert_eq!(uuid.version(), Some(8));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(8));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 
     #[test]
@@ -109,8 +109,8 @@ mod tests {
     #[test]
     fn version_and_variant_helpers_report_correctly() {
         let uuid = UUID::from_parts_v8([0u8; 16]);
-        assert_eq!(uuid.version(), Some(8));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(8));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 
     // -----------------------------------------------------------

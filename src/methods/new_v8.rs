@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn version_and_variant_helpers_report_correctly() {
         let uuid = UUID::new_v8(0u128);
-        assert_eq!(uuid.version(), Some(8));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(8));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 }

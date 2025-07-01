@@ -89,15 +89,15 @@ mod tests {
         assert_eq!(&b[10..16], &[0x00, 0x01, 0x02, 0x03, 0x04, 0x05]);
 
         // High-level helpers
-        assert_eq!(uuid.version(), Some(6));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(6));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
     }
 
     #[test]
     fn nil_timestamp_yields_valid_uuid() {
         let uuid = UUID::from_parts_v6(0, 0, 0, 0, [0; 6]);
-        assert_eq!(uuid.version(), Some(6));
-        assert_eq!(uuid.variant(), Variant::OSF);
+        assert_eq!(uuid.get_version(), Some(6));
+        assert_eq!(uuid.get_variant(), Variant::OSF);
 
         // Only version & variant bits should be non-zero.
         let mut expected = [0u8; 16];

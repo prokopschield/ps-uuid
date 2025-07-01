@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn version_and_variant_are_reported() {
         let uuid = UUID::from_parts_v4([0u8; 16]);
-        assert_eq!(uuid.version(), Some(4));
+        assert_eq!(uuid.get_version(), Some(4));
         // If you have a variant() method, you can also check that here.
     }
 }

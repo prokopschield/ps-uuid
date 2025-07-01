@@ -41,7 +41,7 @@ mod tests {
     fn version_and_variant_are_correct() {
         let ns = UUID { bytes: [0u8; 16] };
         let uuid = UUID::new_v3(&ns, "abc");
-        assert_eq!(uuid.version(), Some(3));
+        assert_eq!(uuid.get_version(), Some(3));
         assert!(is_rfc4122_variant(uuid.bytes[8]));
     }
 

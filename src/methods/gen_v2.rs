@@ -50,7 +50,7 @@ mod tests {
     fn version_is_always_2() {
         for &domain in &[0, 1, 2, 42] {
             let u = v2(domain, 0xDEAD_BEEF);
-            assert_eq!(u.version(), Some(2));
+            assert_eq!(u.get_version(), Some(2));
         }
     }
 

@@ -106,7 +106,7 @@ mod tests {
     fn version_and_variant_methods_report_correctly() {
         let mut rng = StdRng::seed_from_u64(5555);
         let uuid = UUID::new_v4(&mut rng);
-        assert_eq!(uuid.version(), Some(4));
+        assert_eq!(uuid.get_version(), Some(4));
         // If you have a variant() method, you can check it here as well.
     }
 

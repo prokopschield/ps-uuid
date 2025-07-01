@@ -51,7 +51,7 @@ mod tests {
         assert_eq!(u.bytes[9], domain);
         assert!(variant_rfc_4122(u.bytes[8]));
         assert_eq!(u.bytes[10..16], *node_id);
-        assert_eq!(u.version(), Some(2));
+        assert_eq!(u.get_version(), Some(2));
     }
 
     #[test]

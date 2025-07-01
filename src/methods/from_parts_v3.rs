@@ -35,7 +35,7 @@ mod tests {
     fn sets_version_and_variant_correctly() {
         for &input in &[[0u8; 16], [0xFFu8; 16]] {
             let uuid = UUID::from_parts_v3(input);
-            assert_eq!(uuid.version(), Some(3));
+            assert_eq!(uuid.get_version(), Some(3));
             assert!(is_rfc4122_variant(uuid.bytes[8]));
         }
     }

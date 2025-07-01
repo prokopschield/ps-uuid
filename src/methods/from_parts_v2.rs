@@ -58,6 +58,6 @@ mod tests {
         assert_eq!(u.bytes[10..16], *node_id);
 
         // Public API
-        assert_eq!(u.version(), Some(2));
+        assert_eq!(u.get_version(), Some(2));
     }
 }

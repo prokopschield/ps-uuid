@@ -2,8 +2,8 @@ use crate::{NodeId, UUID};
 
 impl UUID {
     #[must_use]
-    pub const fn node_id(&self) -> Option<NodeId> {
-        match self.version() {
+    pub const fn get_node_id(&self) -> Option<NodeId> {
+        match self.get_version() {
             Some(1 | 2 | 6) => {
                 let [_, _, _, _, _, _, _, _, _, _, b1, b2, b3, b4, b5, b6] = self.bytes;
 
@@ -56,7 +56,7 @@ mod tests {
         for &v in &[1u8, 2, 6] {
             let uuid = make_uuid(v, node);
             assert_eq!(
-                uuid.node_id(),
+                uuid.get_node_id(),
                 Some(NodeId { bytes: node }),
                 "unexpected result for version {v}"
             );
@@ -71,7 +71,7 @@ mod tests {
         for &v in &[0u8, 3, 4, 5, 7, 8, 9, 0xF] {
             let uuid = make_uuid(v, unwanted);
             assert_eq!(
-                uuid.node_id(),
+                uuid.get_node_id(),
                 None,
                 "version {v} incorrectly returned Some(..)"
             );
@@ -100,7 +100,7 @@ mod tests {
         UUID { bytes }
     };
 
-    const SAMPLE_NODE_ID: Option<NodeId> = SAMPLE_UUID.node_id();
+    const SAMPLE_NODE_ID: Option<NodeId> = SAMPLE_UUID.get_node_id();
 
     #[test]
     fn const_evaluation_matches_runtime_result() {

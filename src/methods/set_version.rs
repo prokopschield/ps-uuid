@@ -39,7 +39,7 @@ mod tests {
             uuid.set_version(version);
             // Check version is set correctly using version()
             assert_eq!(
-                uuid.version(),
+                uuid.get_version(),
                 Some(version),
                 "Version should be set to {version}"
             );
@@ -74,7 +74,7 @@ mod tests {
 
         uuid.set_version(0);
 
-        assert_eq!(uuid.version(), Some(0), "Version should be set to 0");
+        assert_eq!(uuid.get_version(), Some(0), "Version should be set to 0");
         assert_eq!(
             uuid.bytes[6],
             original_bytes[6] & 0x0F,
@@ -100,7 +100,7 @@ mod tests {
 
         uuid.set_version(15);
 
-        assert_eq!(uuid.version(), Some(15), "Version should be set to 15");
+        assert_eq!(uuid.get_version(), Some(15), "Version should be set to 15");
         assert_eq!(uuid.bytes[6], 0xF0, "Byte 6 should be 0xF0 for version 15");
         assert!(has_osf_variant(&uuid), "OSF variant not set for version 15");
         // Check other bytes unchanged except bytes 6 and 8
@@ -127,7 +127,7 @@ mod tests {
 
         uuid.set_version(3);
 
-        assert_eq!(uuid.version(), Some(3), "Version should be set to 3");
+        assert_eq!(uuid.get_version(), Some(3), "Version should be set to 3");
         assert_eq!(
             uuid.bytes[6], 0x3F,
             "Byte 6 should have version 3 (0x3) in upper nibble and preserve 0xF in lower nibble"
@@ -148,11 +148,11 @@ mod tests {
             uuid.bytes, uuid.bytes,
             "Repeated calls with same version should be idempotent"
         );
-        assert_eq!(uuid.version(), Some(1), "Version should remain 1");
+        assert_eq!(uuid.get_version(), Some(1), "Version should remain 1");
 
         uuid.set_version(2);
 
-        assert_eq!(uuid.version(), Some(2), "Version should change to 2");
+        assert_eq!(uuid.get_version(), Some(2), "Version should change to 2");
         assert!(has_osf_variant(&uuid), "OSF variant should persist");
     }
 
@@ -169,7 +169,7 @@ mod tests {
 
         uuid.set_version(4);
 
-        assert_eq!(uuid.version(), Some(4), "Version should be set to 4");
+        assert_eq!(uuid.get_version(), Some(4), "Version should be set to 4");
         // Check all bytes except 6 (version) and 8 (variant)
         let unchanged_indices = [0, 1, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15];
         for i in &unchanged_indices {
@@ -192,7 +192,11 @@ mod tests {
         uuid.set_version(5);
         uuid.set_version(3);
 
-        assert_eq!(uuid.version(), Some(3), "Version should be updated to 3");
+        assert_eq!(
+            uuid.get_version(),
+            Some(3),
+            "Version should be updated to 3"
+        );
         assert!(has_osf_variant(&uuid), "OSF variant should be set");
         assert_eq!(
             uuid.bytes[6], 0x30,
