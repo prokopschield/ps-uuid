@@ -168,7 +168,11 @@ mod tests {
             uuid_v1.bytes, uuid_v1_again.bytes,
             "Repeated calls with same version should be idempotent"
         );
-        assert_eq!(uuid_v1_again.get_version(), Some(1), "Version should remain 1");
+        assert_eq!(
+            uuid_v1_again.get_version(),
+            Some(1),
+            "Version should remain 1"
+        );
 
         let uuid_v2 = uuid_v1.with_version(2);
         assert_eq!(uuid_v2.get_version(), Some(2), "Version should change to 2");

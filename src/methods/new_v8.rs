@@ -18,7 +18,7 @@ impl UUID {
     /// let payload: u128 = 0xDEAD_BEEF_DEAD_BEEF_DEAD_BEEF_DEAD_BEEF;
     /// let uuid = UUID::new_v8(payload);
     ///
-    /// assert_eq!(uuid.version(), Some(8));
+    /// assert_eq!(uuid.get_version(), Some(8));
     /// ```
     #[must_use]
     pub fn new_v8<V: Into<u128>>(value: V) -> Self {

@@ -8,7 +8,7 @@ impl UUID {
     /// Builds an RFC-4122 Version-5 UUID from a raw 20-byte SHA-1 digest.
     ///
     /// The caller must supply the digest that results from hashing
-    /// `namespace.bytes || name`.  
+    /// `namespace.bytes || name`.
     /// The first 16 bytes of the digest are copied into the UUID; the
     /// version and variant fields are then fixed via `.with_version(5)`.
     #[must_use]

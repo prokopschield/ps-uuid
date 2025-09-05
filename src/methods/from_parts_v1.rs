@@ -7,16 +7,11 @@ impl UUID {
     /// Arguments must already be laid out exactly as described in
     /// RFC 4122 §4.1 (big-endian/network order):
     ///
-    /// - `time_low`:         32 least-significant bits of the 60-bit
-    ///                      timestamp
+    /// - `time_low`:         32 least-significant bits of the 60-bit timestamp
     /// - `time_mid`:         next 16 bits of the timestamp
-    /// - `time_hi`:          next 12 bits of the timestamp
-    ///                      (upper 4 bits will be overwritten with the
-    ///                      version by `with_version`)
-    /// - `clock_seq`:        14-bit clock sequence; the two variant
-    ///                      control bits are set by `with_version`
-    /// - `node_id`:          48-bit IEEE 802 MAC address (or random
-    ///                      host id)
+    /// - `time_hi`:          next 12 bits of the timestamp (upper 4 bits will be overwritten with the version by `with_version`)
+    /// - `clock_seq`:        14-bit clock sequence; the two variant control bits are set by `with_version`
+    /// - `node_id`:          48-bit IEEE 802 MAC address (or random host id)
     ///
     /// The function never fails; all bit fiddling is guaranteed to be
     /// valid by construction. The returned value satisfies

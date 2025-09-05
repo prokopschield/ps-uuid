@@ -16,7 +16,7 @@ impl UUID {
     /// Build a Version-7 (time-ordered) UUID from its constituent fields.
     ///
     /// Arguments
-    /// - `unix_ts_ms` – milliseconds since 1970-01-01 00:00:00 UTC  
+    /// - `unix_ts_ms` – milliseconds since 1970-01-01 00:00:00 UTC\
     ///   (only the least-significant 48 bits are used)
     /// - `rand_a` – 12 bits of random data
     /// - `rand_b` – 62 additional random bits

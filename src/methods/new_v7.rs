@@ -16,7 +16,7 @@ impl UUID {
     ///
     /// The `timestamp` argument expresses the elapsed time since
     /// 1970-01-01 00:00:00 UTC (`Duration::as_millis()` must fit into
-    /// 48 bits).  
+    /// 48 bits).\
     /// `random_bytes` supplies the final eight random bytes that complete the
     /// 128-bit UUID.
     ///

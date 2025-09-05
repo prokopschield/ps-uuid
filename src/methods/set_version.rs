@@ -1,7 +1,7 @@
 use crate::UUID;
 
 impl UUID {
-    pub fn set_version(&mut self, version: u8) {
+    pub const fn set_version(&mut self, version: u8) {
         self.bytes[6] &= 0x0F;
         self.bytes[6] |= version << 4;
 

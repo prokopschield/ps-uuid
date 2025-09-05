@@ -2,7 +2,7 @@ use crate::UUID;
 
 impl UUID {
     #[must_use]
-    pub fn as_mut_bytes(&mut self) -> &mut [u8; 16] {
+    pub const fn as_mut_bytes(&mut self) -> &mut [u8; 16] {
         &mut self.bytes
     }
 }
