@@ -1,6 +1,6 @@
 [package]
 name = "ps-uuid"
-version = "0.1.0-0"
+version = "0.1.0-1"
 edition = "2021"
 description = "An opinionated UUID implementation."
 license = "GPL-3.0-or-later"
