@@ -1,8 +1,10 @@
 [package]
 name = "ps-uuid"
-version = "0.1.0-2"
+version = "0.1.0-3"
 edition = "2021"
 description = "An opinionated UUID implementation."
+documentation = "https://docs.rs/ps-uuid"
+repository = "https://github.com/prokopschield/ps-uuid"
 license = "GPL-3.0-or-later"
 
 [dependencies]
