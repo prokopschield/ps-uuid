@@ -142,10 +142,13 @@ mod tests {
         let mut uuid = create_test_uuid(original_bytes);
 
         uuid.set_version(1);
+
+        let after_first = uuid.bytes;
+
         uuid.set_version(1);
 
         assert_eq!(
-            uuid.bytes, uuid.bytes,
+            uuid.bytes, after_first,
             "Repeated calls with same version should be idempotent"
         );
         assert_eq!(uuid.get_version(), Some(1), "Version should remain 1");

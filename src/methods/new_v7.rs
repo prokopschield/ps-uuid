@@ -79,8 +79,6 @@ mod tests {
         let uuid = UUID::new_v7(dur, [0; 8]);
         let b = uuid.as_bytes();
 
-        eprintln!("{ms:?} {dur:?} {uuid:?} {b:?}");
-
         assert_eq!(
             &b[0..6],
             &[0x01, 0x23, 0x45, 0x67, 0x89, 0xAB],

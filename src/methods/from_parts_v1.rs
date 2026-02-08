@@ -101,7 +101,6 @@ mod tests {
         let uuid = UUID::from_parts_v1(1, 1, 1, 1, [0; 6]);
         let b = uuid.as_bytes();
         // Each field must appear in network order.
-        eprintln!("{uuid:}");
         assert_eq!(&b[0..4], &[0x00, 0x00, 0x00, 0x01]);
         assert_eq!(&b[4..6], &[0x00, 0x01]);
         assert_eq!(b[6], 0x01 << 4);

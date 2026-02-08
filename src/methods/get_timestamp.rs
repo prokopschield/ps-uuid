@@ -162,7 +162,6 @@ mod tests {
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
         let uuid = UUID::new_ncs(t, 1, &address).unwrap();
         let ts = uuid.get_timestamp().unwrap();
-        eprintln!("{t:?} {ts:?}");
         assert_eq!(ts, t, "NCS timestamp roundtrip failed");
     }
 
