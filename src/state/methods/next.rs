@@ -5,7 +5,7 @@ use crate::State;
 const FIDELITY: Duration = Duration::from_nanos(100);
 
 impl State {
-    /// This method returns the next [`UUID`]'s timestamp and clock sequence.
+    /// This method returns the next [`UUID`](crate::UUID)'s timestamp and clock sequence.
     ///
     /// 1. Increments this [`State`]'s timestamp by 100 ns,
     /// 2. compares this with the timestamp provided,
