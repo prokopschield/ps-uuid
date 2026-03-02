@@ -26,9 +26,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use crate::Variant;
 
@@ -53,7 +53,7 @@ mod tests {
     fn non_reserved_bits_are_preserved() {
         let mut bytes = [0u8; 16];
         for (i, item) in bytes.iter_mut().enumerate() {
-            *item = u8::try_from(i).unwrap();
+            *item = u8::try_from(i).expect("loop index should fit into u8");
         }
         let payload = u128::from_be_bytes(bytes);
 

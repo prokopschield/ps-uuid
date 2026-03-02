@@ -10,6 +10,7 @@ impl fmt::Debug for UUID {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::UUID;
     use core::str::FromStr;
 
@@ -36,7 +37,7 @@ mod tests {
             ],
         };
         let debug = format!("{uuid:?}");
-        let parsed = UUID::from_str(&debug).unwrap();
+        let parsed = UUID::from_str(&debug).expect("failed to parse UUID from Debug output");
         assert_eq!(parsed, uuid);
     }
 }

@@ -235,6 +235,7 @@ impl fmt::Display for Md5 {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use crate::to_hex;
 
     use super::Md5;

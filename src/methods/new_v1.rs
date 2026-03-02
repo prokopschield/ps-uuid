@@ -35,9 +35,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use std::time::{Duration, UNIX_EPOCH};
 
     use super::*;
@@ -45,7 +45,9 @@ mod tests {
 
     // Helper: build the “ground truth” through from_parts_v1
     fn manual(time: SystemTime, node: [u8; 6]) -> UUID {
-        let dur = time.duration_since(Gregorian::epoch()).unwrap();
+        let dur = time
+            .duration_since(Gregorian::epoch())
+            .expect("test timestamp should be after Gregorian epoch");
         let ticks = dur.as_secs() * 10_000_000 + u64::from(dur.subsec_nanos() / 100);
 
         let time_low = (ticks & 0xFFFF_FFFF) as u32;
@@ -61,7 +63,8 @@ mod tests {
         let t = UNIX_EPOCH + Duration::from_secs(1_700_000_000); // 2023-11-14
         let mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let auto = UUID::new_v1(t, rand::random(), mac).unwrap();
+        let auto =
+            UUID::new_v1(t, rand::random(), mac).expect("new_v1 should succeed for valid inputs");
         let bytes = auto.as_bytes();
 
         // Structural guarantees -------------------------------------------
@@ -89,7 +92,9 @@ mod tests {
         // 60-bit tick field can hold ~ 36 089  days  … choose a far-future date
         let too_far = UNIX_EPOCH
             + Duration::from_secs(
-                u64::try_from(1u128 << 60).unwrap() / 10_000_000 + 12_219_292_800 + 10,
+                u64::try_from(1u128 << 60).expect("2^60 should fit into u64") / 10_000_000
+                    + 12_219_292_800
+                    + 10,
             );
 
         let err = UUID::new_v1(too_far, rand::random(), [0; 6]).unwrap_err();
@@ -98,7 +103,8 @@ mod tests {
 
     #[test]
     fn variant_and_version_bits_are_correct() {
-        let uuid = UUID::new_v1(SystemTime::now(), rand::random(), [1, 2, 3, 4, 5, 6]).unwrap();
+        let uuid = UUID::new_v1(SystemTime::now(), rand::random(), [1, 2, 3, 4, 5, 6])
+            .expect("new_v1 should succeed for valid inputs");
         let b = uuid.as_bytes();
 
         // Variant = 10xxxxxx

@@ -22,9 +22,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use std::{
         collections::HashSet,
@@ -91,7 +91,7 @@ mod tests {
             handles.push(thread::spawn(move || {
                 for _ in 0..PER_THREAD {
                     let id = UUID::gen_v6().expect("generation should succeed");
-                    let mut guard = global.lock().unwrap();
+                    let mut guard = global.lock().expect("state mutex should not be poisoned");
                     assert!(guard.insert(id), "duplicate across threads");
                     drop(guard);
                 }

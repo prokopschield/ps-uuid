@@ -45,6 +45,7 @@ impl UUID {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
 
     #[test]
@@ -102,15 +103,27 @@ mod tests {
 
         // Verify each field
         assert_eq!(
-            u32::from_le_bytes(uuid.bytes[0..4].try_into().unwrap()),
+            u32::from_le_bytes(
+                uuid.bytes[0..4]
+                    .try_into()
+                    .expect("UUID byte slice should match expected field length")
+            ),
             time_low
         );
         assert_eq!(
-            u16::from_le_bytes(uuid.bytes[4..6].try_into().unwrap()),
+            u16::from_le_bytes(
+                uuid.bytes[4..6]
+                    .try_into()
+                    .expect("UUID byte slice should match expected field length")
+            ),
             time_mid
         );
         assert_eq!(
-            u16::from_le_bytes(uuid.bytes[6..8].try_into().unwrap()),
+            u16::from_le_bytes(
+                uuid.bytes[6..8]
+                    .try_into()
+                    .expect("UUID byte slice should match expected field length")
+            ),
             time_hi_and_version
         );
         assert_eq!(uuid.bytes[10..16], node);

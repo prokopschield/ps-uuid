@@ -81,6 +81,7 @@ impl<'de> Deserialize<'de> for UUID {
 
 #[cfg(all(test, feature = "serde"))]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::UUID;
 
     const fn sample_uuid() -> UUID {
@@ -95,43 +96,50 @@ mod tests {
     #[test]
     fn serialize_to_canonical_string() {
         let uuid = sample_uuid();
-        let s = serde_json::to_string(&uuid).unwrap();
+        let s = serde_json::to_string(&uuid)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(s, "\"550e8400-e29b-41d4-a716-446655440000\"");
     }
 
     #[test]
     fn deserialize_from_canonical_string() {
         let s = "\"550e8400-e29b-41d4-a716-446655440000\"";
-        let uuid: UUID = serde_json::from_str(s).unwrap();
+        let uuid: UUID = serde_json::from_str(s)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid, sample_uuid());
     }
 
     #[test]
     fn deserialize_from_string_without_hyphens() {
         let s = "\"550e8400e29b41d4a716446655440000\"";
-        let uuid: UUID = serde_json::from_str(s).unwrap();
+        let uuid: UUID = serde_json::from_str(s)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid, sample_uuid());
     }
 
     #[test]
     fn deserialize_from_string_with_braces() {
         let s = "\"{550e8400-e29b-41d4-a716-446655440000}\"";
-        let uuid: UUID = serde_json::from_str(s).unwrap();
+        let uuid: UUID = serde_json::from_str(s)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid, sample_uuid());
     }
 
     #[test]
     fn deserialize_from_uppercase_string() {
         let s = "\"550E8400-E29B-41D4-A716-446655440000\"";
-        let uuid: UUID = serde_json::from_str(s).unwrap();
+        let uuid: UUID = serde_json::from_str(s)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid, sample_uuid());
     }
 
     #[test]
     fn deserialize_from_bytes_array() {
         let bytes = sample_uuid().bytes;
-        let json = serde_json::to_string(&bytes).unwrap();
-        let uuid: UUID = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&bytes)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
+        let uuid: UUID = serde_json::from_str(&json)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid.bytes, bytes);
     }
 
@@ -143,8 +151,10 @@ mod tests {
                 0xde, 0xf0,
             ],
         };
-        let s = serde_json::to_string(&uuid).unwrap();
-        let back: UUID = serde_json::from_str(&s).unwrap();
+        let s = serde_json::to_string(&uuid)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
+        let back: UUID = serde_json::from_str(&s)
+            .expect("serde_json roundtrip should succeed for valid UUID values");
         assert_eq!(uuid, back);
     }
 
@@ -191,8 +201,10 @@ mod tests {
             let mut bytes = [0u8; 16];
             rng.fill_bytes(&mut bytes);
             let uuid = UUID { bytes };
-            let s = serde_json::to_string(&uuid).unwrap();
-            let back: UUID = serde_json::from_str(&s).unwrap();
+            let s = serde_json::to_string(&uuid)
+                .expect("serde_json roundtrip should succeed for valid UUID values");
+            let back: UUID = serde_json::from_str(&s)
+                .expect("serde_json roundtrip should succeed for valid UUID values");
             assert_eq!(uuid, back);
         }
     }

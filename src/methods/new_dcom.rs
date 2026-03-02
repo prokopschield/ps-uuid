@@ -55,8 +55,8 @@ impl UUID {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use std::{
         ops::BitXor,
         time::{Duration, UNIX_EPOCH},
@@ -78,7 +78,7 @@ mod tests {
         let result = UUID::new_dcom(timestamp, node_id);
         assert!(result.is_ok());
 
-        let uuid = result.unwrap();
+        let uuid = result.expect("new_dcom should succeed for valid timestamp and node id");
         assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
@@ -90,7 +90,7 @@ mod tests {
         let result = UUID::new_dcom(timestamp, node_id);
         assert!(result.is_ok());
 
-        let uuid = result.unwrap();
+        let uuid = result.expect("new_dcom should succeed for valid timestamp and node id");
         assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
@@ -111,7 +111,8 @@ mod tests {
         let timestamp = UNIX_EPOCH + Duration::from_secs(1);
         let node_id = sample_node_id();
 
-        let uuid = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         // Expected FILETIME: 1 second * 10_000_000 (100ns units) + offset
         let expected_filetime = 10_000_000 + FILETIME_EPOCH_OFFSET;
@@ -133,7 +134,8 @@ mod tests {
         let timestamp = UNIX_EPOCH + Duration::from_secs(12345);
         let node_id = sample_node_id();
 
-        let uuid = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         // Calculate expected clock sequence
         let filetime = 12345 * 10_000_000 + FILETIME_EPOCH_OFFSET;
@@ -156,8 +158,10 @@ mod tests {
         let timestamp = UNIX_EPOCH + Duration::from_millis(123_456_789);
         let node_id = sample_node_id();
 
-        let uuid1 = UUID::new_dcom(timestamp, node_id).unwrap();
-        let uuid2 = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid1 = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
+        let uuid2 = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         assert_eq!(uuid1, uuid2);
     }
@@ -166,8 +170,10 @@ mod tests {
     fn test_new_dcom_different_timestamps() {
         let node_id = sample_node_id();
 
-        let uuid1 = UUID::new_dcom(UNIX_EPOCH + Duration::from_secs(1), node_id).unwrap();
-        let uuid2 = UUID::new_dcom(UNIX_EPOCH + Duration::from_secs(2), node_id).unwrap();
+        let uuid1 = UUID::new_dcom(UNIX_EPOCH + Duration::from_secs(1), node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
+        let uuid2 = UUID::new_dcom(UNIX_EPOCH + Duration::from_secs(2), node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         assert_ne!(uuid1, uuid2);
     }
@@ -178,8 +184,10 @@ mod tests {
         let node_id1 = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06];
         let node_id2 = [0x06, 0x05, 0x04, 0x03, 0x02, 0x01];
 
-        let uuid1 = UUID::new_dcom(timestamp, node_id1).unwrap();
-        let uuid2 = UUID::new_dcom(timestamp, node_id2).unwrap();
+        let uuid1 = UUID::new_dcom(timestamp, node_id1)
+            .expect("new_dcom should succeed for valid timestamp and node id");
+        let uuid2 = UUID::new_dcom(timestamp, node_id2)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         assert_ne!(uuid1, uuid2);
 
@@ -196,15 +204,18 @@ mod tests {
         let timestamp1 = UNIX_EPOCH + Duration::new(1000, 100); // 100 ns
         let timestamp2 = UNIX_EPOCH + Duration::new(1000, 199); // 199 ns
 
-        let uuid1 = UUID::new_dcom(timestamp1, node_id).unwrap();
-        let uuid2 = UUID::new_dcom(timestamp2, node_id).unwrap();
+        let uuid1 = UUID::new_dcom(timestamp1, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
+        let uuid2 = UUID::new_dcom(timestamp2, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         // Should be the same due to 100ns precision truncation
         assert_eq!(uuid1, uuid2);
 
         // But 1000ns difference should be different
         let timestamp3 = UNIX_EPOCH + Duration::new(1000, 1000); // 1000 ns
-        let uuid3 = UUID::new_dcom(timestamp3, node_id).unwrap();
+        let uuid3 = UUID::new_dcom(timestamp3, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         assert_ne!(uuid1, uuid3);
     }
@@ -219,7 +230,7 @@ mod tests {
         let result = UUID::new_dcom(far_future, node_id);
         assert!(result.is_ok());
 
-        let uuid = result.unwrap();
+        let uuid = result.expect("new_dcom should succeed for valid timestamp and node id");
         assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
@@ -245,7 +256,7 @@ mod tests {
         let result = UUID::new_dcom(timestamp, node_id);
         assert!(result.is_ok());
 
-        let uuid = result.unwrap();
+        let uuid = result.expect("new_dcom should succeed for valid timestamp and node id");
         assert_eq!(&uuid.bytes[10..16], &node_id);
     }
 
@@ -257,7 +268,7 @@ mod tests {
         let result = UUID::new_dcom(timestamp, node_id);
         assert!(result.is_ok());
 
-        let uuid = result.unwrap();
+        let uuid = result.expect("new_dcom should succeed for valid timestamp and node id");
         assert_eq!(&uuid.bytes[10..16], &node_id);
     }
 
@@ -266,7 +277,8 @@ mod tests {
         let timestamp = UNIX_EPOCH + Duration::from_secs(0x1234_5678);
         let node_id = sample_node_id();
 
-        let uuid = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         // Verify little-endian encoding for time fields
         let expected_filetime = 0x1234_5678u64 * 10_000_000 + FILETIME_EPOCH_OFFSET;
@@ -289,7 +301,8 @@ mod tests {
         let timestamp = UNIX_EPOCH + Duration::from_secs(1000);
         let node_id = sample_node_id();
 
-        let uuid = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid = UUID::new_dcom(timestamp, node_id)
+            .expect("new_dcom should succeed for valid timestamp and node id");
 
         // Verify DCOM variant bits (110) are set in byte 8, bits 7-5
         let byte_8 = uuid.bytes[8];

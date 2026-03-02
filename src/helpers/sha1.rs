@@ -160,6 +160,7 @@ impl fmt::Display for Sha1 {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use crate::{to_hex, ToHex};
 
     use super::Sha1;

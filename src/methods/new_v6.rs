@@ -28,16 +28,18 @@ impl UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use crate::{Gregorian, Variant};
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     // Manual reference builder using from_parts_v6 -------------------------
     fn manual(time: SystemTime, node: [u8; 6]) -> UUID {
-        let dur = time.duration_since(Gregorian::epoch()).unwrap();
+        let dur = time
+            .duration_since(Gregorian::epoch())
+            .expect("test timestamp should be after Gregorian epoch");
         let ticks = dur.as_secs() * 10_000_000 + u64::from(dur.subsec_nanos() / 100);
 
         let time_high = ((ticks >> 28) & 0xFFFF_FFFF) as u32;
@@ -53,7 +55,8 @@ mod tests {
         let t = UNIX_EPOCH + Duration::from_secs(1_700_000_000); // 2023-11-14
         let mac = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let auto = UUID::new_v6(t, rand::random(), mac).unwrap();
+        let auto =
+            UUID::new_v6(t, rand::random(), mac).expect("new_v6 should succeed for valid inputs");
         let bytes = auto.as_bytes();
 
         // Structural guarantees
@@ -87,7 +90,8 @@ mod tests {
 
     #[test]
     fn variant_and_version_bits_are_correct() {
-        let uuid = UUID::new_v6(SystemTime::now(), rand::random(), [1, 2, 3, 4, 5, 6]).unwrap();
+        let uuid = UUID::new_v6(SystemTime::now(), rand::random(), [1, 2, 3, 4, 5, 6])
+            .expect("new_v6 should succeed for valid inputs");
         let b = uuid.as_bytes();
 
         // Variant = 10xxxxxx

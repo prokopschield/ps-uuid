@@ -104,6 +104,7 @@ impl_try_from_uuid_signed!(i8, i16, i32, i64, isize);
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
 
     // -----------------------------------------------------------------------
@@ -425,13 +426,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_u8_zero() {
-        assert_eq!(u8::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            u8::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_u8_max() {
         assert_eq!(
-            u8::try_from(UUID::from(u128::from(u8::MAX))).unwrap(),
+            u8::try_from(UUID::from(u128::from(u8::MAX)))
+                .expect("in-range UUID conversion to integer should succeed"),
             u8::MAX
         );
     }
@@ -447,13 +452,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_u16_zero() {
-        assert_eq!(u16::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            u16::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_u16_max() {
         assert_eq!(
-            u16::try_from(UUID::from(u128::from(u16::MAX))).unwrap(),
+            u16::try_from(UUID::from(u128::from(u16::MAX)))
+                .expect("in-range UUID conversion to integer should succeed"),
             u16::MAX
         );
     }
@@ -469,13 +478,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_u32_zero() {
-        assert_eq!(u32::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            u32::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_u32_max() {
         assert_eq!(
-            u32::try_from(UUID::from(u128::from(u32::MAX))).unwrap(),
+            u32::try_from(UUID::from(u128::from(u32::MAX)))
+                .expect("in-range UUID conversion to integer should succeed"),
             u32::MAX
         );
     }
@@ -491,13 +504,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_u64_zero() {
-        assert_eq!(u64::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            u64::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_u64_max() {
         assert_eq!(
-            u64::try_from(UUID::from(u128::from(u64::MAX))).unwrap(),
+            u64::try_from(UUID::from(u128::from(u64::MAX)))
+                .expect("in-range UUID conversion to integer should succeed"),
             u64::MAX
         );
     }
@@ -513,13 +530,18 @@ mod tests {
 
     #[test]
     fn try_from_uuid_usize_zero() {
-        assert_eq!(usize::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            usize::try_from(UUID::nil())
+                .expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_usize_max() {
         assert_eq!(
-            usize::try_from(UUID::from(usize::MAX as u128)).unwrap(),
+            usize::try_from(UUID::from(usize::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
             usize::MAX
         );
     }
@@ -536,12 +558,19 @@ mod tests {
 
     #[test]
     fn try_from_uuid_i8_zero() {
-        assert_eq!(i8::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            i8::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_i8_max() {
-        assert_eq!(i8::try_from(UUID::from(i8::MAX as u128)).unwrap(), i8::MAX);
+        assert_eq!(
+            i8::try_from(UUID::from(i8::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
+            i8::MAX
+        );
     }
 
     #[test]
@@ -555,14 +584,20 @@ mod tests {
         // A UUID built from -1i8 has u128 value u128::MAX, which via i128
         // is -1, which fits in i8.
         let uuid = UUID::from(-1i8);
-        assert_eq!(i8::try_from(uuid).unwrap(), -1);
+        assert_eq!(
+            i8::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            -1
+        );
     }
 
     #[test]
     fn try_from_uuid_i8_from_i8_min() {
         // UUID from i8::MIN round-trips back through i128 -> i8
         let uuid = UUID::from(i8::MIN);
-        assert_eq!(i8::try_from(uuid).unwrap(), i8::MIN);
+        assert_eq!(
+            i8::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            i8::MIN
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -571,13 +606,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_i16_zero() {
-        assert_eq!(i16::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            i16::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_i16_max() {
         assert_eq!(
-            i16::try_from(UUID::from(i16::MAX as u128)).unwrap(),
+            i16::try_from(UUID::from(i16::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
             i16::MAX
         );
     }
@@ -590,13 +629,19 @@ mod tests {
     #[test]
     fn try_from_uuid_i16_from_negative() {
         let uuid = UUID::from(-1i16);
-        assert_eq!(i16::try_from(uuid).unwrap(), -1);
+        assert_eq!(
+            i16::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            -1
+        );
     }
 
     #[test]
     fn try_from_uuid_i16_from_i16_min() {
         let uuid = UUID::from(i16::MIN);
-        assert_eq!(i16::try_from(uuid).unwrap(), i16::MIN);
+        assert_eq!(
+            i16::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            i16::MIN
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -605,13 +650,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_i32_zero() {
-        assert_eq!(i32::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            i32::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_i32_max() {
         assert_eq!(
-            i32::try_from(UUID::from(i32::MAX as u128)).unwrap(),
+            i32::try_from(UUID::from(i32::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
             i32::MAX
         );
     }
@@ -624,13 +673,19 @@ mod tests {
     #[test]
     fn try_from_uuid_i32_from_negative() {
         let uuid = UUID::from(-1i32);
-        assert_eq!(i32::try_from(uuid).unwrap(), -1);
+        assert_eq!(
+            i32::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            -1
+        );
     }
 
     #[test]
     fn try_from_uuid_i32_from_i32_min() {
         let uuid = UUID::from(i32::MIN);
-        assert_eq!(i32::try_from(uuid).unwrap(), i32::MIN);
+        assert_eq!(
+            i32::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            i32::MIN
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -639,13 +694,17 @@ mod tests {
 
     #[test]
     fn try_from_uuid_i64_zero() {
-        assert_eq!(i64::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            i64::try_from(UUID::nil()).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_i64_max() {
         assert_eq!(
-            i64::try_from(UUID::from(i64::MAX as u128)).unwrap(),
+            i64::try_from(UUID::from(i64::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
             i64::MAX
         );
     }
@@ -658,13 +717,19 @@ mod tests {
     #[test]
     fn try_from_uuid_i64_from_negative() {
         let uuid = UUID::from(-1i64);
-        assert_eq!(i64::try_from(uuid).unwrap(), -1);
+        assert_eq!(
+            i64::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            -1
+        );
     }
 
     #[test]
     fn try_from_uuid_i64_from_i64_min() {
         let uuid = UUID::from(i64::MIN);
-        assert_eq!(i64::try_from(uuid).unwrap(), i64::MIN);
+        assert_eq!(
+            i64::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            i64::MIN
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -673,13 +738,18 @@ mod tests {
 
     #[test]
     fn try_from_uuid_isize_zero() {
-        assert_eq!(isize::try_from(UUID::nil()).unwrap(), 0);
+        assert_eq!(
+            isize::try_from(UUID::nil())
+                .expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn try_from_uuid_isize_max() {
         assert_eq!(
-            isize::try_from(UUID::from(isize::MAX as u128)).unwrap(),
+            isize::try_from(UUID::from(isize::MAX as u128))
+                .expect("in-range UUID conversion to integer should succeed"),
             isize::MAX
         );
     }
@@ -692,13 +762,19 @@ mod tests {
     #[test]
     fn try_from_uuid_isize_from_negative() {
         let uuid = UUID::from(-1isize);
-        assert_eq!(isize::try_from(uuid).unwrap(), -1);
+        assert_eq!(
+            isize::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            -1
+        );
     }
 
     #[test]
     fn try_from_uuid_isize_from_isize_min() {
         let uuid = UUID::from(isize::MIN);
-        assert_eq!(isize::try_from(uuid).unwrap(), isize::MIN);
+        assert_eq!(
+            isize::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+            isize::MIN
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -759,7 +835,11 @@ mod tests {
     fn signed_roundtrip_i8() {
         for v in [i8::MIN, -42, -1, 0, 1, 42, i8::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(i8::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                i8::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -767,7 +847,11 @@ mod tests {
     fn signed_roundtrip_i16() {
         for v in [i16::MIN, -1000, -1, 0, 1, 1000, i16::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(i16::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                i16::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -775,7 +859,11 @@ mod tests {
     fn signed_roundtrip_i32() {
         for v in [i32::MIN, -100_000, -1, 0, 1, 100_000, i32::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(i32::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                i32::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -783,7 +871,11 @@ mod tests {
     fn signed_roundtrip_i64() {
         for v in [i64::MIN, -1_000_000_000, -1, 0, 1, 1_000_000_000, i64::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(i64::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                i64::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -795,7 +887,11 @@ mod tests {
     fn unsigned_roundtrip_u8() {
         for v in [0u8, 1, 127, 128, u8::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(u8::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                u8::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -803,7 +899,11 @@ mod tests {
     fn unsigned_roundtrip_u16() {
         for v in [0u16, 1, 255, 256, u16::MAX] {
             let uuid = UUID::from(v);
-            assert_eq!(u16::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                u16::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -817,7 +917,11 @@ mod tests {
             u32::MAX,
         ] {
             let uuid = UUID::from(v);
-            assert_eq!(u32::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                u32::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -831,7 +935,11 @@ mod tests {
             u64::MAX,
         ] {
             let uuid = UUID::from(v);
-            assert_eq!(u64::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
+            assert_eq!(
+                u64::try_from(uuid).expect("in-range UUID conversion to integer should succeed"),
+                v,
+                "roundtrip failed for {v}"
+            );
         }
     }
 
@@ -896,22 +1004,52 @@ mod tests {
     fn nil_uuid_to_all_unsigned() {
         let nil = UUID::nil();
         assert_eq!(u128::from(nil), 0);
-        assert_eq!(u8::try_from(nil).unwrap(), 0);
-        assert_eq!(u16::try_from(nil).unwrap(), 0);
-        assert_eq!(u32::try_from(nil).unwrap(), 0);
-        assert_eq!(u64::try_from(nil).unwrap(), 0);
-        assert_eq!(usize::try_from(nil).unwrap(), 0);
+        assert_eq!(
+            u8::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            u16::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            u32::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            u64::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            usize::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]
     fn nil_uuid_to_all_signed() {
         let nil = UUID::nil();
         assert_eq!(i128::from(nil), 0);
-        assert_eq!(i8::try_from(nil).unwrap(), 0);
-        assert_eq!(i16::try_from(nil).unwrap(), 0);
-        assert_eq!(i32::try_from(nil).unwrap(), 0);
-        assert_eq!(i64::try_from(nil).unwrap(), 0);
-        assert_eq!(isize::try_from(nil).unwrap(), 0);
+        assert_eq!(
+            i8::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            i16::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            i32::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            i64::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
+        assert_eq!(
+            isize::try_from(nil).expect("in-range UUID conversion to integer should succeed"),
+            0
+        );
     }
 
     #[test]

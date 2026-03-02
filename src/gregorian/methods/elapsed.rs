@@ -14,8 +14,8 @@ impl Gregorian {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use crate::Gregorian;
 
     #[test]

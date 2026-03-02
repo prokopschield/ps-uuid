@@ -77,9 +77,9 @@ impl FromStr for UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use core::str::FromStr;
 
@@ -156,10 +156,11 @@ mod tests {
 
     #[test]
     fn round_trip_hyphenated() {
-        let uuid = UUID::from_str(RFC_SAMPLE_CANON).unwrap();
+        let uuid =
+            UUID::from_str(RFC_SAMPLE_CANON).expect("failed to parse UUID in positive test case");
         // Assuming you have a `to_hyphenated_string()` or `Display` impl.
         let s = format!("{uuid}");
-        let again = UUID::from_str(&s).unwrap();
+        let again = UUID::from_str(&s).expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, again.bytes);
     }
 
@@ -169,55 +170,64 @@ mod tests {
 
     #[test]
     fn parses_canonical() {
-        let uuid = UUID::from_str(RFC_SAMPLE_CANON).unwrap();
+        let uuid =
+            UUID::from_str(RFC_SAMPLE_CANON).expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_no_hyphens() {
-        let uuid = UUID::from_str("6ba7b8109dad11d180b400c04fd430c8").unwrap();
+        let uuid = UUID::from_str("6ba7b8109dad11d180b400c04fd430c8")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_uppercase() {
-        let uuid = UUID::from_str("6BA7B810-9DAD-11D1-80B4-00C04FD430C8").unwrap();
+        let uuid = UUID::from_str("6BA7B810-9DAD-11D1-80B4-00C04FD430C8")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_braces_canonical() {
-        let uuid = UUID::from_str("{6ba7b810-9dad-11d1-80b4-00c04fd430c8}").unwrap();
+        let uuid = UUID::from_str("{6ba7b810-9dad-11d1-80b4-00c04fd430c8}")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_braces_no_hyphens() {
-        let uuid = UUID::from_str("{6ba7b8109dad11d180b400c04fd430c8}").unwrap();
+        let uuid = UUID::from_str("{6ba7b8109dad11d180b400c04fd430c8}")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_urn_canonical() {
-        let uuid = UUID::from_str("urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8").unwrap();
+        let uuid = UUID::from_str("urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_urn_braces() {
-        let uuid = UUID::from_str("urn:uuid:{6ba7b810-9dad-11d1-80b4-00c04fd430c8}").unwrap();
+        let uuid = UUID::from_str("urn:uuid:{6ba7b810-9dad-11d1-80b4-00c04fd430c8}")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_urn_uppercase() {
-        let uuid = UUID::from_str("URN:UUID:6BA7B810-9DAD-11D1-80B4-00C04FD430C8").unwrap();
+        let uuid = UUID::from_str("URN:UUID:6BA7B810-9DAD-11D1-80B4-00C04FD430C8")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn parses_urn_braces_uppercase() {
-        let uuid = UUID::from_str("URN:UUID:{6BA7B810-9DAD-11D1-80B4-00C04FD430C8}").unwrap();
+        let uuid = UUID::from_str("URN:UUID:{6BA7B810-9DAD-11D1-80B4-00C04FD430C8}")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
@@ -247,13 +257,15 @@ mod tests {
 
     #[test]
     fn parses_all_zero_uuid() {
-        let uuid = UUID::from_str("00000000-0000-0000-0000-000000000000").unwrap();
+        let uuid = UUID::from_str("00000000-0000-0000-0000-000000000000")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, [0u8; 16]);
     }
 
     #[test]
     fn parses_all_ff_uuid() {
-        let uuid = UUID::from_str("ffffffff-ffff-ffff-ffff-ffffffffffff").unwrap();
+        let uuid = UUID::from_str("ffffffff-ffff-ffff-ffff-ffffffffffff")
+            .expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, [0xFFu8; 16]);
     }
 
@@ -416,23 +428,24 @@ mod tests {
 
     #[test]
     fn round_trip_canonical() {
-        let uuid = UUID::from_str(RFC_SAMPLE_CANON).unwrap();
+        let uuid =
+            UUID::from_str(RFC_SAMPLE_CANON).expect("failed to parse UUID in positive test case");
         let s = format!("{uuid}");
-        let again = UUID::from_str(&s).unwrap();
+        let again = UUID::from_str(&s).expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, again.bytes);
     }
 
     #[test]
     fn accepts_mixed_case() {
         let s = "6Ba7B810-9dAD-11D1-80b4-00C04fD430C8";
-        let uuid = UUID::from_str(s).unwrap();
+        let uuid = UUID::from_str(s).expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 
     #[test]
     fn accepts_urn_with_mixed_case_prefix() {
         let s = "UrN:UuId:6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-        let uuid = UUID::from_str(s).unwrap();
+        let uuid = UUID::from_str(s).expect("failed to parse UUID in positive test case");
         assert_eq!(uuid.bytes, RFC_SAMPLE_BYTES);
     }
 }

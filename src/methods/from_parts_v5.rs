@@ -31,6 +31,7 @@ impl UUID {
 #[allow(clippy::cast_possible_truncation, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use std::str::FromStr;
 
     use crate::{sha1, UUID};
@@ -72,7 +73,8 @@ mod tests {
     #[test]
     fn matches_rfc_reference_example() {
         // RFC-4122 Appendix C  (DNS namespace, name = "python.org")
-        let ns = UUID::from_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8").unwrap();
+        let ns = UUID::from_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+            .expect("failed to parse UUID test vector");
         let name = b"python.org";
 
         // Digest and UUID via `from_parts_v5`
@@ -80,7 +82,8 @@ mod tests {
         let via_parts = UUID::from_parts_v5(digest);
 
         // Expected UUID from the RFC
-        let expected = UUID::from_str("886313e1-3b8a-5372-9b90-0c9aee199e5d").unwrap();
+        let expected = UUID::from_str("886313e1-3b8a-5372-9b90-0c9aee199e5d")
+            .expect("failed to parse UUID test vector");
 
         assert_eq!(via_parts.bytes, expected.bytes);
     }

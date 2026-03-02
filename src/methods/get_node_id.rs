@@ -18,9 +18,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
 
     /// Helper that fabricates a UUID with a specific version *and* node ID.
@@ -34,7 +34,7 @@ mod tests {
 
         // Any arbitrary values for the time / clock sequence fields:
         for (i, item) in bytes.iter_mut().enumerate() {
-            *item = i.try_into().unwrap();
+            *item = i.try_into().expect("test index should fit into u8");
         }
 
         // Embed the requested version.

@@ -15,9 +15,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -67,9 +67,11 @@ mod tests {
     fn test_gen_dcom_determinism() {
         // Same node_id and close timestamps should yield different UUIDs
         let node_id = [1, 2, 3, 4, 5, 6];
-        let uuid1 = UUID::gen_dcom(node_id).unwrap();
+        let uuid1 =
+            UUID::gen_dcom(node_id).expect("DCOM UUID generation should succeed for valid input");
         std::thread::sleep(std::time::Duration::from_millis(1));
-        let uuid2 = UUID::gen_dcom(node_id).unwrap();
+        let uuid2 =
+            UUID::gen_dcom(node_id).expect("DCOM UUID generation should succeed for valid input");
         assert_ne!(
             uuid1, uuid2,
             "UUIDs generated at different times should differ"
@@ -81,8 +83,10 @@ mod tests {
         // Same timestamp and node_id should yield the same UUID
         let timestamp = UNIX_EPOCH + Duration::from_secs(1_600_000_000);
         let node_id = [1, 2, 3, 4, 5, 6];
-        let uuid1 = UUID::new_dcom(timestamp, node_id).unwrap();
-        let uuid2 = UUID::new_dcom(timestamp, node_id).unwrap();
+        let uuid1 = UUID::new_dcom(timestamp, node_id)
+            .expect("DCOM UUID generation should succeed for valid input");
+        let uuid2 = UUID::new_dcom(timestamp, node_id)
+            .expect("DCOM UUID generation should succeed for valid input");
         assert_eq!(uuid1, uuid2, "Same input should yield same UUID");
     }
 }

@@ -42,6 +42,7 @@ unsafe impl<C: Fallible + ?Sized> CheckBytes<C> for UUID {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use rkyv::{deserialize, rancor::Error, to_bytes, vec::ArchivedVec};
 
     use crate::UUID;
@@ -66,7 +67,8 @@ mod tests {
         assert_eq!(archived.bytes, original.bytes);
 
         // Deserialize back
-        let deserialized = rkyv::deserialize::<UUID, Error>(archived).unwrap();
+        let deserialized = rkyv::deserialize::<UUID, Error>(archived)
+            .expect("rkyv roundtrip should succeed for valid UUID values");
 
         assert_eq!(deserialized, original);
     }
@@ -88,7 +90,8 @@ mod tests {
             assert_eq!(archived_uuid.bytes, original_uuid.bytes);
         }
 
-        let deserialized = deserialize::<Vec<UUID>, Error>(archived).unwrap();
+        let deserialized = deserialize::<Vec<UUID>, Error>(archived)
+            .expect("rkyv roundtrip should succeed for valid UUID values");
 
         assert_eq!(deserialized, uuids);
     }
@@ -98,8 +101,10 @@ mod tests {
         let u1 = sample_uuid();
         let u2 = sample_uuid();
 
-        let bytes1 = to_bytes::<Error>(&u1).unwrap();
-        let bytes2 = to_bytes::<Error>(&u2).unwrap();
+        let bytes1 =
+            to_bytes::<Error>(&u1).expect("rkyv roundtrip should succeed for valid UUID values");
+        let bytes2 =
+            to_bytes::<Error>(&u2).expect("rkyv roundtrip should succeed for valid UUID values");
 
         let a1 = unsafe { rkyv::access_unchecked::<UUID>(&bytes1) };
         let a2 = unsafe { rkyv::access_unchecked::<UUID>(&bytes2) };
@@ -111,7 +116,8 @@ mod tests {
     #[test]
     fn validation_of_serialized_data() {
         let original = sample_uuid();
-        let bytes = to_bytes::<Error>(&original).unwrap();
+        let bytes = to_bytes::<Error>(&original)
+            .expect("rkyv roundtrip should succeed for valid UUID values");
 
         // Validate the serialized buffer
         let check_result = rkyv::access::<UUID, Error>(&bytes);
@@ -125,12 +131,14 @@ mod tests {
         let max = UUID { bytes: [0xFF; 16] };
 
         for uuid in [zero, max] {
-            let bytes = to_bytes::<Error>(&uuid).unwrap();
+            let bytes = to_bytes::<Error>(&uuid)
+                .expect("rkyv roundtrip should succeed for valid UUID values");
             let archived = unsafe { rkyv::access_unchecked::<UUID>(&bytes) };
 
             assert_eq!(archived.bytes, uuid.bytes);
 
-            let deserialized: UUID = deserialize::<UUID, Error>(archived).unwrap();
+            let deserialized: UUID = deserialize::<UUID, Error>(archived)
+                .expect("rkyv roundtrip should succeed for valid UUID values");
 
             assert_eq!(deserialized, uuid);
         }

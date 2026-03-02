@@ -17,9 +17,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use super::*;
 
     // ---------------------------------------------------------------------
@@ -34,7 +34,11 @@ mod tests {
     /// Extract the 32-bit value stored in the first four bytes
     /// (\( \text{time\_low} \) / Local-ID field).
     fn local_id(u: &UUID) -> u32 {
-        u32::from_be_bytes(u.bytes[0..4].try_into().unwrap())
+        u32::from_be_bytes(
+            u.bytes[0..4]
+                .try_into()
+                .expect("UUID timestamp slice should be exactly 4 bytes"),
+        )
     }
 
     /// True iff the RFC-4122 variant bits are `10`.

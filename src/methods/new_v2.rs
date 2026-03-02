@@ -24,9 +24,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::expect_used, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use std::time::{Duration, SystemTime};
 
     use crate::{NodeId, UUID};
@@ -58,8 +58,10 @@ mod tests {
     fn new_v2_distinguishes_different_local_ids() {
         let base_time = SystemTime::UNIX_EPOCH;
         let node_id = NodeId::random();
-        let a = UUID::new_v2(0, 1, base_time, 1, *node_id).unwrap();
-        let b = UUID::new_v2(0, 2, base_time, 1, *node_id).unwrap();
+        let a = UUID::new_v2(0, 1, base_time, 1, *node_id)
+            .expect("new_v2 should succeed for valid inputs");
+        let b = UUID::new_v2(0, 2, base_time, 1, *node_id)
+            .expect("new_v2 should succeed for valid inputs");
         assert_ne!(a.bytes, b.bytes);
     }
 
@@ -67,8 +69,10 @@ mod tests {
     fn new_v2_distinguishes_different_domains() {
         let base_time = SystemTime::UNIX_EPOCH;
         let node_id = NodeId::random();
-        let a = UUID::new_v2(1, 0, base_time, 1, *node_id).unwrap();
-        let b = UUID::new_v2(2, 0, base_time, 1, *node_id).unwrap();
+        let a = UUID::new_v2(1, 0, base_time, 1, *node_id)
+            .expect("new_v2 should succeed for valid inputs");
+        let b = UUID::new_v2(2, 0, base_time, 1, *node_id)
+            .expect("new_v2 should succeed for valid inputs");
         assert_ne!(a.bytes, b.bytes);
     }
 }

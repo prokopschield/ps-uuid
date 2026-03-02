@@ -22,6 +22,7 @@ impl UUID {
 #[allow(clippy::cast_possible_truncation, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use std::str::FromStr;
 
     use crate::{md5, UUID};
@@ -66,7 +67,8 @@ mod tests {
         // Reference data from RFC 4122, Appendix C:
         // namespace = DNS (6ba7b810-9dad-11d1-80b4-00c04fd430c8)
         // name      = "python.org"
-        let ns = UUID::from_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8").unwrap();
+        let ns = UUID::from_str("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+            .expect("failed to parse namespace UUID test vector");
         let name = b"python.org";
 
         // v3 via the public constructor

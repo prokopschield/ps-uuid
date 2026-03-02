@@ -114,6 +114,7 @@ impl UUID {
 #[allow(clippy::cast_possible_truncation, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
     use crate::Variant;
 
     use super::*;
@@ -123,7 +124,9 @@ mod tests {
     fn v1_and_v2_timestamp_roundtrip() {
         let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
         let uuid = UUID::from_parts_v1(0x6fc1_0000, 0x86f2, 0x23, 0x1234, [1, 2, 3, 4, 5, 6]);
-        let ts = uuid.get_timestamp().unwrap();
+        let ts = uuid
+            .get_timestamp()
+            .expect("timestamp should be present for time-based UUID");
         assert_eq!(ts, t, "v1 timestamp roundtrip failed");
     }
 
@@ -131,7 +134,9 @@ mod tests {
     fn v6_timestamp_roundtrip() {
         let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
         let uuid = UUID::from_parts_v6(0x0238_6f26, 0xfc10, 0x6000, 0x1234, [1, 2, 3, 4, 5, 6]);
-        let ts = uuid.get_timestamp().unwrap();
+        let ts = uuid
+            .get_timestamp()
+            .expect("timestamp should be present for time-based UUID");
         assert_eq!(ts, t, "v6 timestamp roundtrip failed");
     }
 
@@ -139,7 +144,9 @@ mod tests {
     fn v7_timestamp_roundtrip() {
         let ms = 1_700_000_000_000u64;
         let uuid = UUID::from_parts_v7(ms, 0, 0);
-        let ts = uuid.get_timestamp().unwrap();
+        let ts = uuid
+            .get_timestamp()
+            .expect("timestamp should be present for time-based UUID");
         let expected = UNIX_EPOCH + Duration::from_millis(ms);
         assert_eq!(ts, expected, "v7 timestamp roundtrip failed");
     }
@@ -149,8 +156,10 @@ mod tests {
         // FILETIME: 100ns since 1601-01-01
         let t = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
         let node = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
-        let uuid = UUID::new_dcom(t, node).unwrap();
-        let ts = uuid.get_timestamp().unwrap();
+        let uuid = UUID::new_dcom(t, node).expect("new_dcom should succeed for valid test inputs");
+        let ts = uuid
+            .get_timestamp()
+            .expect("timestamp should be present for time-based UUID");
         assert_eq!(ts, t, "DCOM timestamp roundtrip failed");
     }
 
@@ -160,8 +169,11 @@ mod tests {
         let ncs_epoch = UNIX_EPOCH + Duration::from_secs(315_532_800);
         let t = ncs_epoch + Duration::from_secs(1_000_000);
         let address = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
-        let uuid = UUID::new_ncs(t, 1, &address).unwrap();
-        let ts = uuid.get_timestamp().unwrap();
+        let uuid =
+            UUID::new_ncs(t, 1, &address).expect("new_ncs should succeed for valid test inputs");
+        let ts = uuid
+            .get_timestamp()
+            .expect("timestamp should be present for time-based UUID");
         assert_eq!(ts, t, "NCS timestamp roundtrip failed");
     }
 
