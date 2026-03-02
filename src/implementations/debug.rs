@@ -22,7 +22,7 @@ mod tests {
             ],
         };
         assert_eq!(
-            format!("{:?}", uuid),
+            format!("{uuid:?}"),
             "{01020304-0506-0708-090a-0b0c0d0e0f10}"
         );
     }
@@ -35,7 +35,7 @@ mod tests {
                 0x30, 0xc8,
             ],
         };
-        let debug = format!("{:?}", uuid);
+        let debug = format!("{uuid:?}");
         let parsed = UUID::from_str(&debug).unwrap();
         assert_eq!(parsed, uuid);
     }

@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn from_u8_max() {
-        assert_eq!(u128::from(UUID::from(u8::MAX)), u8::MAX as u128);
+        assert_eq!(u128::from(UUID::from(u8::MAX)), u128::from(u8::MAX));
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn from_u16_max() {
-        assert_eq!(u128::from(UUID::from(u16::MAX)), u16::MAX as u128);
+        assert_eq!(u128::from(UUID::from(u16::MAX)), u128::from(u16::MAX));
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
 
     #[test]
     fn from_u32_max() {
-        assert_eq!(u128::from(UUID::from(u32::MAX)), u32::MAX as u128);
+        assert_eq!(u128::from(UUID::from(u32::MAX)), u128::from(u32::MAX));
     }
 
     #[test]
@@ -259,7 +259,7 @@ mod tests {
 
     #[test]
     fn from_u64_max() {
-        assert_eq!(u128::from(UUID::from(u64::MAX)), u64::MAX as u128);
+        assert_eq!(u128::from(UUID::from(u64::MAX)), u128::from(u64::MAX));
     }
 
     #[test]
@@ -430,12 +430,15 @@ mod tests {
 
     #[test]
     fn try_from_uuid_u8_max() {
-        assert_eq!(u8::try_from(UUID::from(u8::MAX as u128)).unwrap(), u8::MAX);
+        assert_eq!(
+            u8::try_from(UUID::from(u128::from(u8::MAX))).unwrap(),
+            u8::MAX
+        );
     }
 
     #[test]
     fn try_from_uuid_u8_max_plus_one() {
-        assert!(u8::try_from(UUID::from(u8::MAX as u128 + 1)).is_err());
+        assert!(u8::try_from(UUID::from(u128::from(u8::MAX) + 1)).is_err());
     }
 
     // -----------------------------------------------------------------------
@@ -450,14 +453,14 @@ mod tests {
     #[test]
     fn try_from_uuid_u16_max() {
         assert_eq!(
-            u16::try_from(UUID::from(u16::MAX as u128)).unwrap(),
+            u16::try_from(UUID::from(u128::from(u16::MAX))).unwrap(),
             u16::MAX
         );
     }
 
     #[test]
     fn try_from_uuid_u16_max_plus_one() {
-        assert!(u16::try_from(UUID::from(u16::MAX as u128 + 1)).is_err());
+        assert!(u16::try_from(UUID::from(u128::from(u16::MAX) + 1)).is_err());
     }
 
     // -----------------------------------------------------------------------
@@ -472,14 +475,14 @@ mod tests {
     #[test]
     fn try_from_uuid_u32_max() {
         assert_eq!(
-            u32::try_from(UUID::from(u32::MAX as u128)).unwrap(),
+            u32::try_from(UUID::from(u128::from(u32::MAX))).unwrap(),
             u32::MAX
         );
     }
 
     #[test]
     fn try_from_uuid_u32_max_plus_one() {
-        assert!(u32::try_from(UUID::from(u32::MAX as u128 + 1)).is_err());
+        assert!(u32::try_from(UUID::from(u128::from(u32::MAX) + 1)).is_err());
     }
 
     // -----------------------------------------------------------------------
@@ -494,14 +497,14 @@ mod tests {
     #[test]
     fn try_from_uuid_u64_max() {
         assert_eq!(
-            u64::try_from(UUID::from(u64::MAX as u128)).unwrap(),
+            u64::try_from(UUID::from(u128::from(u64::MAX))).unwrap(),
             u64::MAX
         );
     }
 
     #[test]
     fn try_from_uuid_u64_max_plus_one() {
-        assert!(u64::try_from(UUID::from(u64::MAX as u128 + 1)).is_err());
+        assert!(u64::try_from(UUID::from(u128::from(u64::MAX) + 1)).is_err());
     }
 
     // -----------------------------------------------------------------------
@@ -745,7 +748,7 @@ mod tests {
 
     #[test]
     fn try_from_uuid_i32_large_positive() {
-        assert!(i32::try_from(UUID::from(u32::MAX as u128)).is_err());
+        assert!(i32::try_from(UUID::from(u128::from(u32::MAX))).is_err());
     }
 
     // -----------------------------------------------------------------------
@@ -806,7 +809,13 @@ mod tests {
 
     #[test]
     fn unsigned_roundtrip_u32() {
-        for v in [0u32, 1, u16::MAX as u32, u16::MAX as u32 + 1, u32::MAX] {
+        for v in [
+            0u32,
+            1,
+            u32::from(u16::MAX),
+            u32::from(u16::MAX) + 1,
+            u32::MAX,
+        ] {
             let uuid = UUID::from(v);
             assert_eq!(u32::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
         }
@@ -814,7 +823,13 @@ mod tests {
 
     #[test]
     fn unsigned_roundtrip_u64() {
-        for v in [0u64, 1, u32::MAX as u64, u32::MAX as u64 + 1, u64::MAX] {
+        for v in [
+            0u64,
+            1,
+            u64::from(u32::MAX),
+            u64::from(u32::MAX) + 1,
+            u64::MAX,
+        ] {
             let uuid = UUID::from(v);
             assert_eq!(u64::try_from(uuid).unwrap(), v, "roundtrip failed for {v}");
         }

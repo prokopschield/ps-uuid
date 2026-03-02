@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn clone_and_eq_work() {
         let u1 = sample_uuid();
-        let u2 = u1.clone();
+        let u2 = u1;
 
         assert_eq!(u1, u2);
     }

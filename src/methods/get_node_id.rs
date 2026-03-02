@@ -25,7 +25,7 @@ mod tests {
 
     /// Helper that fabricates a UUID with a specific version *and* node ID.
     ///
-    /// - `version` is written into the high nibble of byte 6  
+    /// - `version` is written into the high nibble of byte 6
     ///   (see RFC 4122 §4.1.3).
     /// - The RFC 4122 “variant 1” bits (`10xx_xxxx`) are written
     ///   into byte 8, but the variant is irrelevant for `node_id()`.

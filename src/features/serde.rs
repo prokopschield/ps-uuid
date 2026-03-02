@@ -83,7 +83,7 @@ impl<'de> Deserialize<'de> for UUID {
 mod tests {
     use super::UUID;
 
-    fn sample_uuid() -> UUID {
+    const fn sample_uuid() -> UUID {
         UUID {
             bytes: [
                 0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,

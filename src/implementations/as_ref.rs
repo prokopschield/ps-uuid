@@ -28,7 +28,7 @@ mod tests {
         let uuid = UUID::from(0x0123_4567_89ab_cdef_u128);
         let arr: &[u8; UUID_BYTES] = uuid.as_ref();
         assert_eq!(arr, uuid.as_bytes());
-        assert_eq!(std::ptr::eq(arr, uuid.as_bytes()), true);
+        assert!(std::ptr::eq(arr, uuid.as_bytes()));
     }
 
     #[test]
