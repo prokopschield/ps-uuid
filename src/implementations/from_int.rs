@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn big_endian_known_pattern() {
-        let v: u128 = 0x00112233_44556677_8899aabb_ccddeeff;
+        let v: u128 = 0x0011_2233_4455_6677_8899_aabb_ccdd_eeff;
         let uuid = UUID::from(v);
         assert_eq!(
             *uuid.as_bytes(),
