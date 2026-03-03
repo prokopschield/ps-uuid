@@ -128,10 +128,7 @@ mod tests {
 
     #[test]
     fn rejects_wrong_length() {
-        assert_eq!(
-            UUID::from_str("123456").unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str("123456"), Err(UuidParseError::InvalidLength));
     }
 
     #[test]
@@ -249,10 +246,7 @@ mod tests {
 
     #[test]
     fn rejects_empty_string() {
-        assert_eq!(
-            UUID::from_str("").unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str(""), Err(UuidParseError::InvalidLength));
     }
 
     #[test]
@@ -275,28 +269,19 @@ mod tests {
 
     #[test]
     fn rejects_too_short() {
-        assert_eq!(
-            UUID::from_str("1234").unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str("1234"), Err(UuidParseError::InvalidLength));
     }
 
     #[test]
     fn rejects_too_long() {
         let s = format!("{RFC_SAMPLE_CANON}00");
-        assert_eq!(
-            UUID::from_str(&s).unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str(&s), Err(UuidParseError::InvalidLength));
     }
 
     #[test]
     fn rejects_missing_hyphens_in_canonical() {
         let s = "6ba7b8109dad-11d1-80b4-00c04fd430c8";
-        assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str(s), Err(UuidParseError::InvalidLength));
     }
 
     #[test]
@@ -309,8 +294,8 @@ mod tests {
     fn rejects_hyphens_in_no_hyphen_form() {
         let s = "6ba7b8109dad11d1-80b4-00c04fd430c8";
         assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidLength // because length is not 32 or 36
+            UUID::from_str(s),
+            Err(UuidParseError::InvalidLength) // because length is not 32 or 36
         );
     }
 
@@ -319,8 +304,8 @@ mod tests {
         let mut bad = RFC_SAMPLE_CANON.to_string();
         bad.replace_range(0..1, "G"); // 'G' is not a hex digit
         assert_eq!(
-            UUID::from_str(&bad).unwrap_err(),
-            UuidParseError::InvalidCharacter { ch: 'G', idx: 0 }
+            UUID::from_str(&bad),
+            Err(UuidParseError::InvalidCharacter { ch: 'G', idx: 0 })
         );
     }
 
@@ -329,8 +314,8 @@ mod tests {
         let mut bad = "6ba7b8109dad11d180b400c04fd430c8".to_string();
         bad.replace_range(31..32, "Z");
         assert_eq!(
-            UUID::from_str(&bad).unwrap_err(),
-            UuidParseError::InvalidCharacter { ch: 'Z', idx: 31 }
+            UUID::from_str(&bad),
+            Err(UuidParseError::InvalidCharacter { ch: 'Z', idx: 31 })
         );
     }
 
@@ -362,8 +347,8 @@ mod tests {
     fn rejects_urn_with_invalid_uuid() {
         let s = "urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd4308Z";
         assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidCharacter { ch: 'Z', idx: 35 }
+            UUID::from_str(s),
+            Err(UuidParseError::InvalidCharacter { ch: 'Z', idx: 35 })
         );
     }
 
@@ -371,27 +356,21 @@ mod tests {
     fn rejects_urn_with_braces_and_invalid_uuid() {
         let s = "urn:uuid:{6ba7b810-9dad-11d1-80b4-00c04fd430cZ}";
         assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidCharacter { ch: 'Z', idx: 35 }
+            UUID::from_str(s),
+            Err(UuidParseError::InvalidCharacter { ch: 'Z', idx: 35 })
         );
     }
 
     #[test]
     fn rejects_urn_with_mismatched_braces() {
         let s = "urn:uuid:{6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-        assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidBraces
-        );
+        assert_eq!(UUID::from_str(s), Err(UuidParseError::InvalidBraces));
     }
 
     #[test]
     fn rejects_urn_with_extra_characters() {
         let s = "urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8extra";
-        assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidLength
-        );
+        assert_eq!(UUID::from_str(s), Err(UuidParseError::InvalidLength));
     }
 
     // ---------------------------------------------------------------------
@@ -417,8 +396,8 @@ mod tests {
     fn rejects_all_colons() {
         let s = "::::::::::::::::::::::::::::::::::::";
         assert_eq!(
-            UUID::from_str(s).unwrap_err(),
-            UuidParseError::InvalidCharacter { ch: ':', idx: 0 }
+            UUID::from_str(s),
+            Err(UuidParseError::InvalidCharacter { ch: ':', idx: 0 })
         );
     }
 

@@ -83,7 +83,8 @@ mod tests {
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
         let ancient = UNIX_EPOCH - Duration::from_secs(17_834_668_800);
-        let err = UUID::new_v1(ancient, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v1(ancient, rand::random(), [0; 6])
+            .expect_err("new_v1 should reject timestamps before Gregorian epoch");
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);
     }
 
@@ -97,7 +98,8 @@ mod tests {
                     + 10,
             );
 
-        let err = UUID::new_v1(too_far, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v1(too_far, rand::random(), [0; 6])
+            .expect_err("new_v1 should reject timestamps that overflow");
         assert_eq!(err, UuidConstructionError::TimestampOverflow);
     }
 

@@ -75,7 +75,8 @@ mod tests {
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
         let ancient = UNIX_EPOCH - Duration::from_secs(17_834_668_800);
-        let err = UUID::new_v6(ancient, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v6(ancient, rand::random(), [0; 6])
+            .expect_err("new_v6 should reject timestamps before Gregorian epoch");
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);
     }
 
@@ -84,7 +85,8 @@ mod tests {
         const MAX_TICKS: u64 = 0x0FFF_FFFF_FFFF_FFFF; // 60 bits all 1
         let too_far = UNIX_EPOCH + Duration::from_nanos(MAX_TICKS + 1) * 100;
 
-        let err = UUID::new_v6(too_far, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v6(too_far, rand::random(), [0; 6])
+            .expect_err("new_v6 should reject timestamps that overflow");
         assert_eq!(err, UuidConstructionError::TimestampOverflow);
     }
 
@@ -103,7 +105,8 @@ mod tests {
     #[test]
     fn new_v6_rejects_time_before_1582_10_15() {
         let before_gregorian = Gregorian::epoch() - Duration::from_secs(1);
-        let err = UUID::new_v6(before_gregorian, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v6(before_gregorian, rand::random(), [0; 6])
+            .expect_err("new_v6 should reject timestamps before 1582-10-15");
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);
     }
 
@@ -111,7 +114,8 @@ mod tests {
     fn new_v6_rejects_time_after_5236_03_31() {
         const MAX_TICKS: u64 = 0x0FFF_FFFF_FFFF_FFFF;
         let overflow = UNIX_EPOCH + Duration::from_nanos(MAX_TICKS + 1) * 100;
-        let err = UUID::new_v6(overflow, rand::random(), [0; 6]).unwrap_err();
+        let err = UUID::new_v6(overflow, rand::random(), [0; 6])
+            .expect_err("new_v6 should reject timestamps after 5236-03-31");
         assert_eq!(err, UuidConstructionError::TimestampOverflow);
     }
 }
