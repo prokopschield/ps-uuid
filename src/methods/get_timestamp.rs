@@ -111,10 +111,9 @@ impl UUID {
     }
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used)]
+    #![allow(clippy::cast_possible_truncation, clippy::expect_used)]
     use crate::Variant;
 
     use super::*;
