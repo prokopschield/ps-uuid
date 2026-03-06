@@ -12,6 +12,7 @@ mod from_parts_v5;
 mod from_parts_v6;
 mod from_parts_v7;
 mod from_parts_v8;
+mod from_u128;
 mod gen_dcom;
 mod gen_ncs;
 mod gen_v1;
@@ -39,6 +40,7 @@ mod nil;
 mod set_variant;
 mod set_version;
 mod system_time_to_ticks;
+mod to_u128;
 mod with_variant;
 mod with_version;
 
