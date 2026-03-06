@@ -8,9 +8,7 @@ use crate::UUID;
 
 impl From<u128> for UUID {
     fn from(v: u128) -> Self {
-        Self {
-            bytes: v.to_be_bytes(),
-        }
+        Self::from_u128(v)
     }
 }
 
@@ -24,7 +22,7 @@ macro_rules! impl_from_small_unsigned {
     ($($t:ty),*) => { $(
         impl From<$t> for UUID {
             fn from(v: $t) -> Self {
-                Self::from(u128::from(v))
+                Self::from_u128(u128::from(v))
             }
         }
     )* };
@@ -45,13 +43,13 @@ impl_from_small_signed!(i8, i16, i32, i64);
 
 impl From<usize> for UUID {
     fn from(v: usize) -> Self {
-        Self::from(v as u128)
+        Self::from_u128(v as u128)
     }
 }
 
 impl From<isize> for UUID {
     fn from(v: isize) -> Self {
-        Self::from(v as i128)
+        Self::from_u128((v as i128).cast_unsigned())
     }
 }
 
@@ -61,13 +59,13 @@ impl From<isize> for UUID {
 
 impl From<UUID> for u128 {
     fn from(uuid: UUID) -> Self {
-        Self::from_be_bytes(uuid.bytes)
+        uuid.to_u128()
     }
 }
 
 impl From<UUID> for i128 {
     fn from(uuid: UUID) -> Self {
-        u128::from(uuid).cast_signed()
+        uuid.to_u128().cast_signed()
     }
 }
 
@@ -81,7 +79,7 @@ macro_rules! impl_try_from_uuid_unsigned {
             type Error = TryFromIntError;
 
             fn try_from(uuid: UUID) -> Result<Self, Self::Error> {
-                <$t>::try_from(u128::from(uuid))
+                <$t>::try_from(uuid.to_u128())
             }
         }
     )* };
