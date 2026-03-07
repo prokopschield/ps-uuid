@@ -1,6 +1,10 @@
 mod as_bytes;
 mod as_mut_bytes;
 mod duration_to_ticks;
+mod fmt_braced;
+mod fmt_hyphenated;
+mod fmt_simple;
+mod fmt_urn;
 mod from_bytes;
 mod from_parts_dcom;
 mod from_parts_ncs;
@@ -45,4 +49,8 @@ mod to_u128;
 mod with_variant;
 mod with_version;
 
+pub use fmt_braced::Braced;
+pub use fmt_hyphenated::Hyphenated;
+pub use fmt_simple::Simple;
+pub use fmt_urn::Urn;
 pub use new_ncs::NcsUuidError;

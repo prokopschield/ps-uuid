@@ -11,7 +11,7 @@ mod variant;
 pub use error::{DurationToTicksError, UuidConstructionError, UuidParseError};
 pub use gregorian::Gregorian;
 pub use helpers::{md5, sha1, to_hex, Md5, Sha1, ToHex};
-pub use methods::NcsUuidError;
+pub use methods::{Braced, Hyphenated, NcsUuidError, Simple, Urn};
 pub use node_id::{NodeId, NODE_ID_BYTES};
 pub use state::{State, STATE};
 pub use variant::Variant;
