@@ -37,6 +37,7 @@ mod new_v6;
 mod new_v7;
 mod new_v8;
 mod nil;
+mod predicates;
 mod set_variant;
 mod set_version;
 mod system_time_to_ticks;
