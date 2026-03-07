@@ -3,6 +3,7 @@ mod features;
 mod gregorian;
 mod helpers;
 mod implementations;
+mod macros;
 mod methods;
 mod node_id;
 mod state;
