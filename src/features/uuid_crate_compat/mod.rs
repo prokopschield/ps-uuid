@@ -4,6 +4,11 @@
 //! - A `Uuid` type alias matching the uuid crate's naming convention
 //! - Additional methods that mirror the uuid crate's API
 //! - Conversion traits between `UUID` and `uuid::Uuid`
+//! - `UuidCompat` extension trait adding all UUID methods to `uuid::Uuid`
+
+mod compat;
+
+pub use compat::UuidCompat;
 
 use crate::UUID;
 

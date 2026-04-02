@@ -19,7 +19,7 @@ pub use state::{State, STATE};
 pub use variant::Variant;
 
 #[cfg(feature = "uuid-crate-compat")]
-pub use features::uuid_crate_compat::Uuid;
+pub use features::uuid_crate_compat::{Uuid, UuidCompat};
 
 pub const UUID_BYTES: usize = 16;
 
