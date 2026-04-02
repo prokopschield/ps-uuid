@@ -18,6 +18,9 @@ pub use node_id::{NodeId, NODE_ID_BYTES};
 pub use state::{State, STATE};
 pub use variant::Variant;
 
+#[cfg(feature = "uuid-crate-compat")]
+pub use features::uuid_crate_compat::Uuid;
+
 pub const UUID_BYTES: usize = 16;
 
 /// A UUID represented as a 16-byte array
