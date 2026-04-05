@@ -110,6 +110,12 @@ impl UuidCompat for uuid::Uuid {
     }
 }
 
+impl UuidCompat for UUID {
+    fn to_uuid(&self) -> UUID {
+        *self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
