@@ -6,3 +6,4 @@ mod from_bytes;
 mod from_int;
 mod from_str;
 mod ops;
+mod try_from;

@@ -8,6 +8,7 @@ impl AsMut<[u8; UUID_BYTES]> for UUID {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unreadable_literal, clippy::cast_possible_truncation)]
     use crate::{UUID, UUID_BYTES};
 
     #[test]
