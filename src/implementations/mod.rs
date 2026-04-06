@@ -1,6 +1,7 @@
 mod as_mut;
 mod as_ref;
 mod borrow;
+mod borrow_mut;
 mod debug;
 mod display;
 mod from_bytes;
