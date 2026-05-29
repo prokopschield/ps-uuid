@@ -1,6 +1,7 @@
 use crate::{NodeId, NODE_ID_BYTES};
 
 impl NodeId {
+    /// Constructs a [`NodeId`] from its raw bytes.
     #[must_use]
     pub const fn from_bytes(bytes: [u8; NODE_ID_BYTES]) -> Self {
         Self { bytes }
