@@ -1,6 +1,7 @@
 use crate::Variant;
 
 impl Variant {
+    /// Returns the bit prefix that identifies the variant in the variant byte.
     #[must_use]
     pub const fn prefix(self) -> u8 {
         match self {

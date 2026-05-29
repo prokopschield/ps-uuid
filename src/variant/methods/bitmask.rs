@@ -1,6 +1,8 @@
 use crate::Variant;
 
 impl Variant {
+    /// Returns the bitmask that preserves the payload bits of the variant byte,
+    /// clearing the bits reserved for the variant itself.
     #[must_use]
     pub const fn bitmask(self) -> u8 {
         match self {

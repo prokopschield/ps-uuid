@@ -1,5 +1,6 @@
 mod methods;
 
+/// The variant of a UUID, which determines the layout of its bits.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Variant {
     /// The Apollo NCS variant is for backwards compatibility with the Apollo NCS UUID format.
