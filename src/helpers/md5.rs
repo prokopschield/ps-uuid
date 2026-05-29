@@ -5,6 +5,7 @@ use core::fmt;
 
 use crate::ToHex;
 
+/// Computes the MD5 digest of `data`.
 #[must_use]
 pub fn md5(data: &[u8]) -> [u8; 16] {
     Md5::digest(data)
@@ -83,6 +84,7 @@ const K: [u32; 64] = [
     0xeb86_d391,
 ];
 
+/// An incremental MD5 hasher.
 #[derive(Clone)]
 pub struct Md5 {
     state: [u32; 4],
@@ -98,6 +100,7 @@ impl Default for Md5 {
 }
 
 impl Md5 {
+    /// Creates a new MD5 hasher with the initial state.
     #[must_use]
     pub const fn new() -> Self {
         Self {
@@ -108,6 +111,7 @@ impl Md5 {
         }
     }
 
+    /// Feeds `data` into the hasher, returning `self` for chaining.
     pub fn update(&mut self, mut data: &[u8]) -> &mut Self {
         self.len_bits = self.len_bits.wrapping_add((data.len() as u64) << 3);
 
@@ -135,6 +139,7 @@ impl Md5 {
         self
     }
 
+    /// Consumes the hasher and returns the final 16-byte digest.
     #[must_use]
     pub fn finalize(mut self) -> [u8; 16] {
         // padding: 0x80 + zeros + length LE
@@ -165,6 +170,7 @@ impl Md5 {
         out
     }
 
+    /// Computes the MD5 digest of `data` in one step.
     #[must_use]
     pub fn digest(data: &[u8]) -> [u8; 16] {
         let mut hasher = Self::new();

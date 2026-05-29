@@ -5,11 +5,13 @@ use core::fmt;
 
 use crate::ToHex;
 
+/// Computes the SHA-1 digest of `data`.
 #[must_use]
 pub fn sha1(data: &[u8]) -> [u8; 20] {
     Sha1::digest(data)
 }
 
+/// An incremental SHA-1 hasher.
 #[derive(Clone)]
 pub struct Sha1 {
     state: [u32; 5],
@@ -25,6 +27,7 @@ impl Default for Sha1 {
 }
 
 impl Sha1 {
+    /// Creates a new SHA-1 hasher with the initial state.
     #[must_use]
     pub const fn new() -> Self {
         Self {
@@ -41,6 +44,7 @@ impl Sha1 {
         }
     }
 
+    /// Feeds `data` into the hasher.
     pub fn update(&mut self, mut data: &[u8]) {
         self.len_bits = self.len_bits.wrapping_add((data.len() as u64) << 3);
 
@@ -64,6 +68,7 @@ impl Sha1 {
         }
     }
 
+    /// Consumes the hasher and returns the final 20-byte digest.
     #[must_use]
     pub fn finalize(mut self) -> [u8; 20] {
         self.buf[self.buf_len] = 0x80;
@@ -88,6 +93,7 @@ impl Sha1 {
         out
     }
 
+    /// Computes the SHA-1 digest of `data` in one step.
     #[must_use]
     pub fn digest(data: &[u8]) -> [u8; 20] {
         let mut hasher = Self::new();

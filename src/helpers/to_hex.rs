@@ -1,5 +1,6 @@
 const LUT: &[u8; 16] = b"0123456789abcdef";
 
+/// Encodes a byte slice as a lowercase hexadecimal string.
 #[must_use]
 pub fn to_hex(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len() * 2);
@@ -12,10 +13,12 @@ pub fn to_hex(bytes: &[u8]) -> String {
     out
 }
 
+/// A convenience trait for encoding byte-like values as lowercase hexadecimal strings.
 pub trait ToHex
 where
     Self: Sized,
 {
+    /// Encodes `self` as a lowercase hexadecimal string.
     fn to_hex(self) -> String;
 }
 
