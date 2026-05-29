@@ -6,6 +6,8 @@ description = "An opinionated UUID implementation."
 documentation = "https://docs.rs/ps-uuid"
 repository = "https://github.com/prokopschield/ps-uuid"
 license = "GPL-3.0-or-later"
+keywords = ["guid", "rfc9562", "uuid", "uuidv4", "uuidv7"]
+categories = ["data-structures", "parser-implementations"]
 
 [dependencies]
 num-traits = { version = "0.2.19", optional = true }
