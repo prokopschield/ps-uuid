@@ -1,6 +1,7 @@
 use crate::{UUID, UUID_BYTES};
 
 impl UUID {
+    /// Returns the nil UUID, whose bytes are all zero.
     #[must_use]
     pub const fn nil() -> Self {
         Self {

@@ -6,13 +6,17 @@ const NCS_EPOCH: Duration = Duration::from_secs(315_532_800); // January 1, 1980
 const MAX_TIMESTAMP: u64 = (1u64 << 48) - 1; // Max value for 48-bit timestamp
 const NCS_VARIANT_MASK: u8 = 0b1000_0000; // NCS variant bit (0xxx₂)
 
+/// An error that occurs while constructing an NCS UUID.
 #[allow(clippy::module_name_repetitions)]
 #[derive(thiserror::Error, Debug)]
 pub enum NcsUuidError {
+    /// The address family is outside the valid range of `0..=13`.
     #[error("Address family out of range")]
     AddressFamilyOutOfRange,
+    /// The timestamp precedes the NCS epoch of 1980-01-01.
     #[error("Timestamp is before 1980-01-01")]
     TimestampBeforeEpoch,
+    /// The timestamp exceeds the representable range.
     #[error("Timestamp is after 2015-09-05T05:58:26.842Z")]
     TimestampOverflow,
 }

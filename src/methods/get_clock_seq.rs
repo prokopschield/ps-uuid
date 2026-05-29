@@ -1,6 +1,9 @@
 use crate::UUID;
 
 impl UUID {
+    /// Returns the 14-bit clock sequence, or `None` if the version does not carry one.
+    ///
+    /// Only versions 1, 2, and 6 carry a clock sequence.
     #[must_use]
     pub const fn get_clock_seq(&self) -> Option<u16> {
         match self.get_version() {

@@ -1,6 +1,7 @@
 use crate::{Variant, UUID};
 
 impl UUID {
+    /// Sets the variant in place, preserving the payload bits.
     pub const fn set_variant(&mut self, variant: Variant) {
         self.bytes[8] &= variant.bitmask();
         self.bytes[8] |= variant.prefix();

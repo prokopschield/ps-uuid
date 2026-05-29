@@ -1,6 +1,7 @@
 use crate::{Variant, UUID};
 
 impl UUID {
+    /// Returns the version number, or `None` if the UUID is not of the OSF variant.
     #[must_use]
     pub const fn get_version(&self) -> Option<u8> {
         match self.get_variant() {

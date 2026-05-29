@@ -1,6 +1,7 @@
 use crate::{Variant, UUID};
 
 impl UUID {
+    /// Returns the variant of the UUID.
     #[must_use]
     pub const fn get_variant(&self) -> Variant {
         match self.bytes[8] {

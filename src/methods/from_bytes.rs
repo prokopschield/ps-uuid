@@ -1,6 +1,7 @@
 use crate::UUID;
 
 impl UUID {
+    /// Constructs a [`UUID`] from its raw bytes.
     #[must_use]
     pub const fn from_bytes(bytes: [u8; 16]) -> Self {
         Self { bytes }

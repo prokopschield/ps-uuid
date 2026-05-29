@@ -1,6 +1,7 @@
 use crate::UUID;
 
 impl UUID {
+    /// Returns a mutable reference to the UUID's bytes.
     #[must_use]
     pub const fn as_mut_bytes(&mut self) -> &mut [u8; 16] {
         &mut self.bytes

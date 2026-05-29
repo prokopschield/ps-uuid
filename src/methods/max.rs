@@ -1,6 +1,7 @@
 use crate::{UUID, UUID_BYTES};
 
 impl UUID {
+    /// Returns the max UUID, whose bytes are all `0xFF`.
     #[must_use]
     pub const fn max() -> Self {
         Self {

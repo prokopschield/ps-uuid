@@ -1,6 +1,7 @@
 use crate::{Variant, UUID};
 
 impl UUID {
+    /// Returns a copy with the given variant, preserving the payload bits.
     #[must_use]
     pub const fn with_variant(self, variant: Variant) -> Self {
         let mut uuid = self;

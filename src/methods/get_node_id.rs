@@ -1,6 +1,9 @@
 use crate::{NodeId, UUID};
 
 impl UUID {
+    /// Returns the node identifier, or `None` if the version does not carry one.
+    ///
+    /// Only versions 1, 2, and 6 carry a node identifier.
     #[must_use]
     pub const fn get_node_id(&self) -> Option<NodeId> {
         match self.get_version() {
