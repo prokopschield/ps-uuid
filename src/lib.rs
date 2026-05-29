@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! A UUID implementation with support for all standard versions and variants.
 //!
 //! # Features
