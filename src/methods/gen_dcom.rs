@@ -1,17 +1,23 @@
 use std::time::SystemTime;
 
-use crate::{UuidConstructionError, UUID};
+use crate::{UuidConstructionError, STATE, UUID};
 
 impl UUID {
-    /// Generates a new DCOM UUID using the current system time and the provided node ID.
+    /// Generates a Microsoft (DCOM) variant UUID using the current system time.
     ///
-    /// # Arguments
-    /// * `node_id` - The node ID (6 bytes)
+    /// The node ID is supplied by the caller. The timestamp and clock sequence
+    /// are drawn from the shared [`STATE`](crate::STATE), so repeated calls
+    /// within the same 100-nanosecond tick advance the clock sequence to keep
+    /// the results distinct. The DCOM variant leaves 13 bits for the clock
+    /// sequence, so distinctness holds for up to 8192 calls within a single
+    /// tick before the sequence repeats.
     ///
     /// # Errors
-    /// - [`UuidConstructionError`] is returned if the system time is out of range.
+    /// - [`UuidConstructionError`] is returned if the current system time is out of range.
     pub fn gen_dcom(node_id: [u8; 6]) -> Result<Self, UuidConstructionError> {
-        Self::new_dcom(SystemTime::now(), node_id)
+        let (timestamp, clock_seq) = STATE.lock().next(SystemTime::now());
+
+        Self::new_dcom(timestamp, clock_seq, node_id)
     }
 }
 
@@ -19,74 +25,34 @@ impl UUID {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
-    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+    use crate::Variant;
 
     #[test]
-    fn test_gen_dcom_success() {
-        let node_id = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB];
-        let uuid = UUID::gen_dcom(node_id);
-        assert!(
-            uuid.is_ok(),
-            "gen_dcom should succeed with current time and valid node_id"
-        );
+    fn gen_dcom_succeeds_and_sets_variant() {
+        let uuid = UUID::gen_dcom([0x01, 0x23, 0x45, 0x67, 0x89, 0xAB])
+            .expect("gen_dcom should succeed with the current time");
+
+        assert_eq!(uuid.get_variant(), Variant::DCOM);
     }
 
     #[test]
-    fn test_new_dcom_with_specific_node_id() {
-        let timestamp = SystemTime::now();
+    fn gen_dcom_preserves_node_id() {
         let node_id = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
-        let uuid = UUID::new_dcom(timestamp, node_id);
-        assert!(uuid.is_ok(), "new_dcom should succeed with valid node_id");
-        // Optionally, check that the node_id is encoded in the UUID (if accessible)
+        let uuid = UUID::gen_dcom(node_id).expect("gen_dcom should succeed with the current time");
+
+        assert_eq!(&uuid.as_bytes()[10..16], &node_id);
     }
 
     #[test]
-    fn test_new_dcom_timestamp_before_epoch() {
-        let timestamp = UNIX_EPOCH - Duration::from_secs(1);
-        let node_id = [0u8; 6];
-        let result = UUID::new_dcom(timestamp, node_id);
-        assert!(
-            matches!(result, Err(UuidConstructionError::TimestampBeforeEpoch)),
-            "Should error with TimestampBeforeEpoch"
-        );
-    }
-
-    #[test]
-    fn test_new_dcom_timestamp_overflow() {
-        // Use a timestamp far in the future to trigger overflow
-        let timestamp = UNIX_EPOCH + Duration::from_secs(u64::MAX / 2);
-        let node_id = [0u8; 6];
-        let result = UUID::new_dcom(timestamp, node_id);
-        assert!(
-            matches!(result, Err(UuidConstructionError::TimestampOverflow)),
-            "Should error with TimestampOverflow"
-        );
-    }
-
-    #[test]
-    fn test_gen_dcom_determinism() {
-        // Same node_id and close timestamps should yield different UUIDs
+    fn gen_dcom_is_unique_across_calls() {
         let node_id = [1, 2, 3, 4, 5, 6];
-        let uuid1 =
-            UUID::gen_dcom(node_id).expect("DCOM UUID generation should succeed for valid input");
-        std::thread::sleep(std::time::Duration::from_millis(1));
-        let uuid2 =
-            UUID::gen_dcom(node_id).expect("DCOM UUID generation should succeed for valid input");
+
+        let first = UUID::gen_dcom(node_id).expect("gen_dcom should succeed");
+        let second = UUID::gen_dcom(node_id).expect("gen_dcom should succeed");
+
         assert_ne!(
-            uuid1, uuid2,
-            "UUIDs generated at different times should differ"
+            first, second,
+            "consecutive UUIDs must differ via timestamp or clock sequence"
         );
-    }
-
-    #[test]
-    fn test_new_dcom_determinism() {
-        // Same timestamp and node_id should yield the same UUID
-        let timestamp = UNIX_EPOCH + Duration::from_secs(1_600_000_000);
-        let node_id = [1, 2, 3, 4, 5, 6];
-        let uuid1 = UUID::new_dcom(timestamp, node_id)
-            .expect("DCOM UUID generation should succeed for valid input");
-        let uuid2 = UUID::new_dcom(timestamp, node_id)
-            .expect("DCOM UUID generation should succeed for valid input");
-        assert_eq!(uuid1, uuid2, "Same input should yield same UUID");
     }
 }

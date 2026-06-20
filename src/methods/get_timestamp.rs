@@ -155,7 +155,8 @@ mod tests {
         // FILETIME: 100ns since 1601-01-01
         let t = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
         let node = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
-        let uuid = UUID::new_dcom(t, node).expect("new_dcom should succeed for valid test inputs");
+        let uuid =
+            UUID::new_dcom(t, 0, node).expect("new_dcom should succeed for valid test inputs");
         let ts = uuid
             .get_timestamp()
             .expect("timestamp should be present for time-based UUID");
