@@ -11,8 +11,9 @@ impl UUID {
     /// little-endian across the first three fields to match the in-memory
     /// layout of a Microsoft `GUID`. The variant bits are set to
     /// [`Variant::DCOM`](crate::Variant::DCOM), so the result carries no RFC
-    /// version. The embedded timestamp round-trips through
-    /// [`UUID::get_timestamp`].
+    /// version. An input aligned to a 100-nanosecond interval round-trips
+    /// through [`UUID::get_timestamp`]; a finer-grained input is floored to the
+    /// start of its enclosing interval.
     ///
     /// The clock sequence and node ID are supplied by the caller and serve the
     /// same disambiguating role as in a version-1 UUID; the variant bits
@@ -21,7 +22,7 @@ impl UUID {
     /// automatically.
     ///
     /// # Errors
-    /// - [`UuidConstructionError::TimestampBeforeEpoch`] is returned if `time` is before 1970-01-01.
+    /// - [`UuidConstructionError::TimestampBeforeEpoch`] is returned if `time` is before 1601-01-01, the start of the `FILETIME` epoch.
     /// - [`UuidConstructionError::TimestampOverflow`] is returned if `time` is too far in the future to encode.
     pub fn new_dcom(
         time: SystemTime,
@@ -31,14 +32,27 @@ impl UUID {
         // FILETIME epoch: 1601-01-01T00:00:00Z, counted in 100 ns intervals.
         const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;
 
-        let duration_since_unix = time
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| UuidConstructionError::TimestampBeforeEpoch)?;
+        // FILETIME counts 100 ns ticks from 1601, so a time before the Unix
+        // epoch sits below the offset rather than out of range.
+        let filetime = match time.duration_since(UNIX_EPOCH) {
+            Ok(after_epoch) => u64::try_from(after_epoch.as_nanos() / 100)
+                .map_err(|_| UuidConstructionError::TimestampOverflow)?
+                .checked_add(FILETIME_EPOCH_OFFSET)
+                .ok_or(UuidConstructionError::TimestampOverflow)?,
+            Err(before_epoch) => {
+                // Round toward the past so the result is the number of whole
+                // 100 ns intervals elapsed since 1601, matching the post-epoch
+                // branch. Rounding the magnitude up also rejects any instant
+                // within 100 ns before 1601 rather than admitting it as 1601.
+                let ticks_before_unix =
+                    u64::try_from(before_epoch.duration().as_nanos().div_ceil(100))
+                        .map_err(|_| UuidConstructionError::TimestampBeforeEpoch)?;
 
-        let filetime = u64::try_from(duration_since_unix.as_nanos() / 100)
-            .map_err(|_| UuidConstructionError::TimestampOverflow)?
-            .checked_add(FILETIME_EPOCH_OFFSET)
-            .ok_or(UuidConstructionError::TimestampOverflow)?;
+                FILETIME_EPOCH_OFFSET
+                    .checked_sub(ticks_before_unix)
+                    .ok_or(UuidConstructionError::TimestampBeforeEpoch)?
+            }
+        };
 
         // Split the 64-bit FILETIME across the three time fields.
         let time_low = (filetime & 0xFFFF_FFFF) as u32;
@@ -77,8 +91,47 @@ mod tests {
     }
 
     #[test]
-    fn rejects_timestamp_before_unix_epoch() {
-        let result = UUID::new_dcom(UNIX_EPOCH - Duration::from_secs(1), 0, sample_node_id());
+    fn accepts_timestamp_before_unix_epoch() {
+        let time = UNIX_EPOCH - Duration::from_secs(1);
+        let uuid = UUID::new_dcom(time, 0, sample_node_id())
+            .expect("new_dcom should succeed for timestamps within the FILETIME epoch");
+
+        assert_eq!(
+            uuid.get_timestamp(),
+            Some(time),
+            "a pre-1970 timestamp should round-trip through get_timestamp"
+        );
+    }
+
+    #[test]
+    fn accepts_filetime_epoch_boundary() {
+        // The FILETIME epoch (1601-01-01T00:00:00Z) is FILETIME_EPOCH_OFFSET
+        // ticks of 100 ns before the Unix epoch.
+        let filetime_epoch = UNIX_EPOCH - Duration::from_secs(FILETIME_EPOCH_OFFSET / 10_000_000);
+        let uuid = UUID::new_dcom(filetime_epoch, 0, sample_node_id())
+            .expect("new_dcom should succeed at the start of the FILETIME epoch");
+
+        assert_eq!(
+            &uuid.bytes[0..8],
+            &[0u8; 8],
+            "the FILETIME epoch should encode to zero ticks"
+        );
+    }
+
+    #[test]
+    fn rejects_timestamp_before_filetime_epoch() {
+        let before_filetime_epoch =
+            UNIX_EPOCH - Duration::from_secs(FILETIME_EPOCH_OFFSET / 10_000_000 + 1);
+        let result = UUID::new_dcom(before_filetime_epoch, 0, sample_node_id());
+
+        assert_eq!(result, Err(UuidConstructionError::TimestampBeforeEpoch));
+    }
+
+    #[test]
+    fn rejects_timestamp_just_before_filetime_epoch() {
+        // 1 ns before 1601-01-01 must not round up into the representable range.
+        let just_before = UNIX_EPOCH - Duration::new(FILETIME_EPOCH_OFFSET / 10_000_000, 1);
+        let result = UUID::new_dcom(just_before, 0, sample_node_id());
 
         assert_eq!(result, Err(UuidConstructionError::TimestampBeforeEpoch));
     }
