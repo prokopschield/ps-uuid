@@ -22,12 +22,12 @@ pub trait UuidCompat {
         self.to_uuid().get_timestamp()
     }
 
-    /// Returns the node identifier, or `None` if the version does not carry one.
+    /// Returns the node identifier, or `None` if the UUID does not carry one.
     fn get_node_id(&self) -> Option<NodeId> {
         self.to_uuid().get_node_id()
     }
 
-    /// Returns the clock sequence, or `None` if the version does not carry one.
+    /// Returns the clock sequence, or `None` if the UUID does not carry one.
     fn get_clock_seq(&self) -> Option<u16> {
         self.to_uuid().get_clock_seq()
     }

@@ -1,13 +1,14 @@
-use crate::{NodeId, UUID};
+use crate::{NodeId, Variant, UUID};
 
 impl UUID {
-    /// Returns the node identifier, or `None` if the version does not carry one.
+    /// Returns the node identifier, or `None` if the UUID does not carry one.
     ///
-    /// Only versions 1, 2, and 6 carry a node identifier.
+    /// Versions 1, 2, and 6 and UUIDs of the DCOM variant carry a node
+    /// identifier.
     #[must_use]
     pub const fn get_node_id(&self) -> Option<NodeId> {
-        match self.get_version() {
-            Some(1 | 2 | 6) => {
+        match (self.get_version(), self.get_variant()) {
+            (Some(1 | 2 | 6), _) | (_, Variant::DCOM) => {
                 let [_, _, _, _, _, _, _, _, _, _, b1, b2, b3, b4, b5, b6] = self.bytes;
 
                 let node_id = NodeId {
@@ -64,6 +65,15 @@ mod tests {
                 "unexpected result for version {v}"
             );
         }
+    }
+
+    #[test]
+    fn node_id_returns_some_for_dcom_variant() {
+        let node = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66];
+
+        let uuid = UUID::from_parts_dcom(0, 0, 0, 0, node);
+
+        assert_eq!(uuid.get_node_id(), Some(NodeId { bytes: node }));
     }
 
     #[test]

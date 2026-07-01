@@ -1,13 +1,18 @@
-use crate::UUID;
+use crate::{Variant, UUID};
 
 impl UUID {
-    /// Returns the 14-bit clock sequence, or `None` if the version does not carry one.
+    /// Returns the clock sequence, or `None` if the UUID does not carry one.
     ///
-    /// Only versions 1, 2, and 6 carry a clock sequence.
+    /// Versions 1, 2, and 6 carry a 14-bit clock sequence. UUIDs of the DCOM
+    /// variant carry a 13-bit clock sequence, as the variant occupies the top
+    /// three bits.
     #[must_use]
     pub const fn get_clock_seq(&self) -> Option<u16> {
-        match self.get_version() {
-            Some(1 | 2 | 6) => Some(u16::from_be_bytes([self.bytes[8], self.bytes[9]]) & 0x3FFF),
+        match (self.get_version(), self.get_variant()) {
+            (Some(1 | 2 | 6), _) => {
+                Some(u16::from_be_bytes([self.bytes[8], self.bytes[9]]) & 0x3FFF)
+            }
+            (_, Variant::DCOM) => Some(u16::from_be_bytes([self.bytes[8], self.bytes[9]]) & 0x1FFF),
             _ => None,
         }
     }
@@ -66,5 +71,20 @@ mod tests {
 
         assert_eq!(uuid.get_version(), None);
         assert_eq!(uuid.get_clock_seq(), None);
+    }
+
+    #[test]
+    fn test_get_clock_seq_dcom() {
+        let uuid = UUID::from_parts_dcom(0, 0, 0, 0x1ABC, [0; 6]);
+
+        assert_eq!(uuid.get_clock_seq(), Some(0x1ABC));
+    }
+
+    #[test]
+    fn test_get_clock_seq_dcom_masks_variant_bits() {
+        // The variant overwrites the top three bits, leaving 13 bits.
+        let uuid = UUID::from_parts_dcom(0, 0, 0, 0xFFFF, [0; 6]);
+
+        assert_eq!(uuid.get_clock_seq(), Some(0x1FFF));
     }
 }
