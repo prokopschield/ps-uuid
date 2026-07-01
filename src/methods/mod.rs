@@ -54,3 +54,7 @@ pub use fmt_hyphenated::Hyphenated;
 pub use fmt_simple::Simple;
 pub use fmt_urn::Urn;
 pub use new_ncs::NcsUuidError;
+
+/// The number of 100-nanosecond intervals between the `FILETIME` epoch
+/// (1601-01-01T00:00:00Z) and the Unix epoch (1970-01-01T00:00:00Z).
+pub(crate) const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;

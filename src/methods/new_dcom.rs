@@ -1,7 +1,7 @@
 #![allow(clippy::cast_possible_truncation)]
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{UuidConstructionError, UUID};
+use crate::{methods::FILETIME_EPOCH_OFFSET, UuidConstructionError, UUID};
 
 impl UUID {
     /// Creates a Microsoft (DCOM) variant UUID from a timestamp, clock sequence, and node ID.
@@ -29,9 +29,6 @@ impl UUID {
         clock_seq: u16,
         node_id: [u8; 6],
     ) -> Result<Self, UuidConstructionError> {
-        // FILETIME epoch: 1601-01-01T00:00:00Z, counted in 100 ns intervals.
-        const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;
-
         // FILETIME counts 100 ns ticks from 1601, so a time before the Unix
         // epoch sits below the offset rather than out of range.
         let filetime = match time.duration_since(UNIX_EPOCH) {
@@ -70,9 +67,7 @@ mod tests {
     #![allow(clippy::expect_used)]
     use std::time::{Duration, UNIX_EPOCH};
 
-    use crate::{UuidConstructionError, Variant, UUID};
-
-    const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;
+    use crate::{methods::FILETIME_EPOCH_OFFSET, UuidConstructionError, Variant, UUID};
 
     const fn sample_node_id() -> [u8; 6] {
         [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB]

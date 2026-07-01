@@ -1,9 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::{Gregorian, UUID};
-
-// FILETIME epoch: 1601-01-01T00:00:00Z
-const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;
+use crate::{methods::FILETIME_EPOCH_OFFSET, Gregorian, UUID};
 
 // NCS epoch: 1980-01-01T00:00:00Z
 const NCS_EPOCH: Duration = Duration::from_secs(315_532_800);
