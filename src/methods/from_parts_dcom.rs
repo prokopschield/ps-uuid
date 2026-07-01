@@ -1,14 +1,14 @@
 use crate::{Variant, UUID};
 
 impl UUID {
-    /// Creates a new DCOM UUID with the specified `time_low`, `time_mid`, `time_hi_and_version`,
+    /// Creates a new DCOM UUID with the specified `time_low`, `time_mid`, `time_hi`,
     /// `clock_seq`, and node fields.
     ///
     /// # Arguments
     /// * `time_low` - The low field of the timestamp (32 bits)
     /// * `time_mid` - The middle field of the timestamp (16 bits)
-    /// * `time_hi_and_version` - The high field of the timestamp and version (16 bits)
-    /// * `clock_seq` - The clock sequence (14 bits, but passed as 16 bits)
+    /// * `time_hi` - The high field of the timestamp (16 bits); the DCOM variant carries no version
+    /// * `clock_seq` - The clock sequence; the variant bits overwrite the top three bits, leaving 13 bits
     /// * `node` - The node ID (48 bits, passed as 6 bytes)
     ///
     /// # Returns
@@ -17,7 +17,7 @@ impl UUID {
     pub fn from_parts_dcom(
         time_low: u32,
         time_mid: u16,
-        time_hi_and_version: u16,
+        time_hi: u16,
         clock_seq: u16,
         node: [u8; 6],
     ) -> Self {
@@ -29,10 +29,10 @@ impl UUID {
         // Set time_mid (next 2 bytes, little-endian)
         uuid.bytes[4..6].copy_from_slice(&time_mid.to_le_bytes());
 
-        // Set time_hi_and_version (next 2 bytes, little-endian)
-        uuid.bytes[6..8].copy_from_slice(&time_hi_and_version.to_le_bytes());
+        // Set time_hi (next 2 bytes, little-endian)
+        uuid.bytes[6..8].copy_from_slice(&time_hi.to_le_bytes());
 
-        // Set clock_seq (next 2 bytes, little-endian)
+        // Set clock_seq (next 2 bytes, big-endian)
         uuid.bytes[8..10].copy_from_slice(&clock_seq.to_be_bytes());
 
         // Set node (last 6 bytes)
@@ -61,7 +61,7 @@ mod tests {
         let expected_bytes = [
             0x78, 0x56, 0x34, 0x12, // time_low (little-endian)
             0xBC, 0x9A, // time_mid (little-endian)
-            0xF0, 0xDE, // time_hi_and_version (little-endian)
+            0xF0, 0xDE, // time_hi (little-endian)
             0xD2, 0x34, // clock_seq (big-endian, with variant 0b110)
             0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // node
         ];
@@ -74,7 +74,7 @@ mod tests {
         let uuid = UUID::from_parts_dcom(
             0,      // time_low
             0,      // time_mid
-            0,      // time_hi_and_version
+            0,      // time_hi
             0,      // clock_seq
             [0; 6], // node
         );
@@ -95,11 +95,11 @@ mod tests {
     fn test_dcom_uuid_fields_preservation() {
         let time_low = 0x1234_5678;
         let time_mid = 0x9ABC;
-        let time_hi_and_version = 0xDEF0;
+        let time_hi = 0xDEF0;
         let clock_seq = 0x1234;
         let node = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
-        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi, clock_seq, node);
 
         // Verify each field
         assert_eq!(
@@ -124,7 +124,7 @@ mod tests {
                     .try_into()
                     .expect("UUID byte slice should match expected field length")
             ),
-            time_hi_and_version
+            time_hi
         );
         assert_eq!(uuid.bytes[10..16], node);
     }
@@ -160,7 +160,7 @@ mod tests {
         let expected = [
             0xFF, 0xFF, 0xFF, 0xFF, // time_low
             0xFF, 0xFF, // time_mid
-            0xFF, 0xFF, // time_hi_and_version
+            0xFF, 0xFF, // time_hi
             0xDF, 0xFF, // clock_seq (variant will modify MSB to 0b110)
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // node
         ];
@@ -172,17 +172,17 @@ mod tests {
     fn test_new_dcom_from_parts_valid_input() {
         let time_low = 0x1234_5678;
         let time_mid = 0xABCD;
-        let time_hi_and_version = 0x1FFF; // Version 1 for DCOM
+        let time_hi = 0x1FFF;
         let clock_seq = 0xEFFF;
         let node = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB];
 
-        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi, clock_seq, node);
 
         // Expected byte layout for DCOM UUID (little-endian for first three fields)
         let expected_bytes = [
             0x78, 0x56, 0x34, 0x12, // time_low
             0xCD, 0xAB, // time_mid
-            0xFF, 0x1F, // time_hi_and_version
+            0xFF, 0x1F, // time_hi
             0xCF, 0xFF, // clock_seq
             0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, // node
         ];
@@ -194,11 +194,11 @@ mod tests {
     fn test_new_dcom_from_parts_zero_input() {
         let time_low = 0;
         let time_mid = 0;
-        let time_hi_and_version = 0;
+        let time_hi = 0;
         let clock_seq = 0;
         let node = [0; 6];
 
-        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi, clock_seq, node);
 
         assert_eq!(uuid, UUID::nil().with_variant(Variant::DCOM));
     }
@@ -207,11 +207,11 @@ mod tests {
     fn test_new_dcom_from_parts_max_input() {
         let time_low = u32::MAX;
         let time_mid = u16::MAX;
-        let time_hi_and_version = u16::MAX;
+        let time_hi = u16::MAX;
         let clock_seq = u16::MAX;
         let node = [0xFF; 6];
 
-        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi, clock_seq, node);
 
         assert_eq!(uuid, UUID::max().with_variant(Variant::DCOM));
     }
@@ -220,16 +220,16 @@ mod tests {
     fn test_new_dcom_from_parts_endianness() {
         let time_low = 0x1122_3344;
         let time_mid = 0x5566;
-        let time_hi_and_version = 0x7788;
+        let time_hi = 0x7788;
         let clock_seq = 0x99AA;
         let node = [0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00];
 
-        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi_and_version, clock_seq, node);
+        let uuid = UUID::from_parts_dcom(time_low, time_mid, time_hi, clock_seq, node);
 
-        // Check little-endian for time_low, time_mid, time_hi_and_version
+        // Check little-endian for time_low, time_mid, time_hi
         assert_eq!(uuid.bytes[0..4], [0x44, 0x33, 0x22, 0x11]); // time_low
         assert_eq!(uuid.bytes[4..6], [0x66, 0x55]); // time_mid
-        assert_eq!(uuid.bytes[6..8], [0x88, 0x77]); // time_hi_and_version
+        assert_eq!(uuid.bytes[6..8], [0x88, 0x77]); // time_hi
                                                     // Check big-endian for clock_seq and node
         assert_eq!(uuid.bytes[8..10], [0xD9, 0xAA]); // clock_seq
         assert_eq!(uuid.bytes[10..16], [0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00]); // node
