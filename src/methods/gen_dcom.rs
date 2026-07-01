@@ -24,6 +24,12 @@ impl UUID {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
+    use std::{
+        collections::HashSet,
+        sync::{Arc, Mutex},
+        thread,
+    };
+
     use super::*;
     use crate::Variant;
 
@@ -54,5 +60,59 @@ mod tests {
             first, second,
             "consecutive UUIDs must differ via timestamp or clock sequence"
         );
+    }
+
+    /// With a reasonable sample size we should observe no duplicates.
+    #[test]
+    fn gen_dcom_is_unique() {
+        const N: usize = 10_000;
+
+        let node_id = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB];
+
+        let mut set = HashSet::with_capacity(N);
+
+        for _ in 0..N {
+            let id = UUID::gen_dcom(node_id).expect("generation must succeed");
+
+            assert!(
+                set.insert(id),
+                "duplicate UUID generated – monotonicity/clock-seq buggy?"
+            );
+        }
+    }
+
+    /// Ensure the generator remains collision-free when hammered from several
+    /// threads at once.
+    #[test]
+    fn gen_dcom_thread_safety_and_uniqueness() {
+        const THREADS: usize = 8;
+        const PER_THREAD: usize = 2_000;
+
+        let node_id = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB];
+
+        let global: Arc<Mutex<HashSet<UUID>>> =
+            Arc::new(Mutex::new(HashSet::with_capacity(THREADS * PER_THREAD)));
+
+        let mut handles = Vec::with_capacity(THREADS);
+
+        for _ in 0..THREADS {
+            let global = Arc::clone(&global);
+
+            handles.push(thread::spawn(move || {
+                for _ in 0..PER_THREAD {
+                    let id = UUID::gen_dcom(node_id).expect("generation must succeed");
+
+                    let mut guard = global.lock().expect("state mutex should not be poisoned");
+
+                    assert!(guard.insert(id), "duplicate across threads");
+
+                    drop(guard);
+                }
+            }));
+        }
+
+        for h in handles {
+            h.join().expect("thread panicked");
+        }
     }
 }
