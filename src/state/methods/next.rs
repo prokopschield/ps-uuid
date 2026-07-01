@@ -7,10 +7,12 @@ const FIDELITY: Duration = Duration::from_nanos(100);
 impl State {
     /// This method returns the next [`UUID`](crate::UUID)'s timestamp and clock sequence.
     ///
-    /// 1. Increments this [`State`]'s timestamp by 100 ns,
-    /// 2. compares this with the timestamp provided,
-    /// 3. if the provided timestamp is greater or equal, the clock sequence is incremented,
-    /// 4. the timestamp and clock sequence are returned.
+    /// 1. Compares the provided timestamp with this [`State`]'s last timestamp,
+    /// 2. increments the clock sequence modulo 2¹⁴ unless the provided
+    ///    timestamp is more than 100 ns later, so both same-tick calls and a
+    ///    backward-moving clock advance the sequence,
+    /// 3. stores the provided timestamp as the last timestamp,
+    /// 4. returns the provided timestamp and the clock sequence.
     ///
     /// # Usage
     ///
