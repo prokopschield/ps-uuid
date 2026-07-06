@@ -6,11 +6,12 @@ impl UUID {
     /// Generates a Microsoft (DCOM) variant UUID using the current system time.
     ///
     /// The node ID is supplied by the caller. The timestamp and clock sequence
-    /// are drawn from the shared [`STATE`](crate::STATE), so repeated calls
-    /// within the same 100-nanosecond tick advance the clock sequence to keep
-    /// the results distinct. The DCOM variant leaves 13 bits for the clock
-    /// sequence, so distinctness holds for up to 8192 calls within a single
-    /// tick before the sequence repeats.
+    /// are drawn from the shared [`STATE`]: repeated calls within the same
+    /// 100-nanosecond tick advance the clock sequence, and once the 13
+    /// sequence bits the DCOM variant retains are exhausted (8192 UUIDs in one
+    /// tick) the generator borrows the next tick, so results stay distinct
+    /// even under a frozen or coarse system clock. Borrowed timestamps may run
+    /// slightly ahead of the real clock.
     ///
     /// # Errors
     /// - [`UuidConstructionError`] is returned if the current system time is out of range.
