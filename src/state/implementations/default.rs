@@ -8,6 +8,7 @@ impl Default for State {
             last_ts: Gregorian::epoch(),
             node_id: NodeId::random(),
             seq: random(),
+            stalled: 0,
         }
     }
 }

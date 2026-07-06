@@ -21,6 +21,8 @@ impl State {
     /// let next_ts = STATE.lock().next_v7(SystemTime::now());
     /// ```
     pub fn next_v7(&mut self, timestamp: SystemTime) -> SystemTime {
+        // `stalled` is intentionally left alone: a stale count can only
+        // shrink the next tick's clock-sequence budget, never enlarge it.
         let timestamp = timestamp.max(self.last_ts + FIDELITY);
 
         self.last_ts = timestamp;
