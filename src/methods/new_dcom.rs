@@ -1,7 +1,10 @@
 #![allow(clippy::cast_possible_truncation)]
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{methods::FILETIME_EPOCH_OFFSET, UuidConstructionError, UUID};
+use crate::{
+    methods::{FILETIME_EPOCH_OFFSET, TICK},
+    UuidConstructionError, UUID,
+};
 
 impl UUID {
     /// Creates a Microsoft (DCOM) variant UUID from a timestamp, clock sequence, and node ID.
@@ -32,7 +35,7 @@ impl UUID {
         // FILETIME counts 100 ns ticks from 1601, so a time before the Unix
         // epoch sits below the offset rather than out of range.
         let filetime = match time.duration_since(UNIX_EPOCH) {
-            Ok(after_epoch) => u64::try_from(after_epoch.as_nanos() / 100)
+            Ok(after_epoch) => u64::try_from(after_epoch.as_nanos() / TICK.as_nanos())
                 .map_err(|_| UuidConstructionError::TimestampOverflow)?
                 .checked_add(FILETIME_EPOCH_OFFSET)
                 .ok_or(UuidConstructionError::TimestampOverflow)?,
@@ -42,7 +45,7 @@ impl UUID {
                 // branch. Rounding the magnitude up also rejects any instant
                 // within 100 ns before 1601 rather than admitting it as 1601.
                 let ticks_before_unix =
-                    u64::try_from(before_epoch.duration().as_nanos().div_ceil(100))
+                    u64::try_from(before_epoch.duration().as_nanos().div_ceil(TICK.as_nanos()))
                         .map_err(|_| UuidConstructionError::TimestampBeforeEpoch)?;
 
                 FILETIME_EPOCH_OFFSET

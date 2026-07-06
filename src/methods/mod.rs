@@ -49,6 +49,8 @@ mod to_u128;
 mod with_variant;
 mod with_version;
 
+use std::time::Duration;
+
 pub use fmt_braced::Braced;
 pub use fmt_hyphenated::Hyphenated;
 pub use fmt_simple::Simple;
@@ -58,3 +60,9 @@ pub use new_ncs::NcsUuidError;
 /// The number of 100-nanosecond intervals between the `FILETIME` epoch
 /// (1601-01-01T00:00:00Z) and the Unix epoch (1970-01-01T00:00:00Z).
 pub(crate) const FILETIME_EPOCH_OFFSET: u64 = 116_444_736_000_000_000;
+
+/// The length of one RFC 4122 / `FILETIME` timestamp tick. Timestamps are
+/// floored to this granularity when encoded, and
+/// [`State::next`](crate::State::next) issues at most 2¹³ clock-sequence
+/// values per tick, so the two must stay in lockstep.
+pub(crate) const TICK: Duration = Duration::from_nanos(100);

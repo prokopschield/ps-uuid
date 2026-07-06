@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{DurationToTicksError, UUID};
+use crate::{methods::TICK, DurationToTicksError, UUID};
 
 impl UUID {
     /// Generates an RFC 4122 timestamp from a `Duration`.
@@ -21,7 +21,7 @@ impl UUID {
     pub const fn duration_to_ticks(duration: Duration) -> Result<u64, DurationToTicksError> {
         // `duration.as_nanos()` returns a `u128`, preventing overflow for
         // large durations during this intermediate calculation.
-        let ticks = duration.as_nanos() / 100;
+        let ticks = duration.as_nanos() / TICK.as_nanos();
 
         // The UUID timestamp is 60 bits. We must check if the calculated
         // ticks can fit. `1u128 << 60` is the first value that is too large.
