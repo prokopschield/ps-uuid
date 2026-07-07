@@ -47,7 +47,19 @@ impl UUID {
                 let timestamp: u64 = (u64::from(time_high) << 28)
                     | (u64::from(time_mid) << 12)
                     | u64::from(time_low);
-                Some(Gregorian::epoch() + Duration::from_nanos(timestamp * 100))
+
+                // Split into seconds and sub-second ticks before scaling to
+                // nanoseconds: `timestamp * 100` overflows u64 for far-future
+                // 60-bit tick counts (past roughly year 2167), so use the same
+                // divmod form as the v1/v2 branch.
+                #[allow(clippy::cast_possible_truncation)]
+                Some(
+                    Gregorian::epoch()
+                        + Duration::new(
+                            timestamp / 10_000_000,
+                            ((timestamp % 10_000_000) * 100) as u32,
+                        ),
+                )
             }
             // v7: 48-bit Unix ms timestamp, bytes 0..6
             (Some(7), crate::Variant::OSF) => {
@@ -356,6 +368,36 @@ mod tests {
         b[8] = 0x80;
         let uuid = UUID::from_bytes(b);
         assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
+    }
+
+    #[test]
+    fn v6_timestamp_far_future_does_not_overflow() {
+        // A near-maximal 60-bit tick count would overflow `timestamp * 100` in
+        // a u64; the divmod reconstruction must return a timestamp instead of
+        // panicking.
+        let ticks = (1u64 << 60) - 1;
+        let hi = (ticks >> 28) as u32;
+        let mid = ((ticks >> 12) & 0xFFFF) as u16;
+        let lo_ver = ((ticks & 0x0FFF) as u16) | 0x6000; // ver = 6
+
+        let mut b = [0u8; 16];
+        b[0] = (hi >> 24) as u8;
+        b[1] = (hi >> 16) as u8;
+        b[2] = (hi >> 8) as u8;
+        b[3] = hi as u8;
+        b[4] = (mid >> 8) as u8;
+        b[5] = mid as u8;
+        b[6] = (lo_ver >> 8) as u8;
+        b[7] = lo_ver as u8;
+        b[8] = 0x80; // RFC-4122 variant
+        let uuid = UUID::from_bytes(b);
+
+        let expected = Gregorian::epoch()
+            + Duration::new(
+                ticks / HUNDRED_NS_PER_SEC,
+                (ticks % HUNDRED_NS_PER_SEC) as u32 * 100,
+            );
+        assert_eq!(uuid.get_timestamp(), Some(expected));
     }
 
     // ------------------------- version 7 (msec since UNIX) -------------------
