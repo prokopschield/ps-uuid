@@ -1,19 +1,39 @@
-use crate::{UuidConstructionError, UUID};
+use std::time::SystemTime;
+
+use crate::{UuidConstructionError, STATE, UUID};
 
 impl UUID {
     /// Generate v2 UUID (DCE Security)
+    ///
+    /// The version-2 layout replaces `time_low` with the local ID and
+    /// `clock_seq_low` with the domain, so only `time_mid`/`time_hi`
+    /// (granularity 2³² ticks, about 429 seconds) and six clock-sequence bits
+    /// distinguish UUIDs sharing a domain, local ID, and node. The clock
+    /// sequence is drawn from the shared [`STATE`] via [`State::next_v2`],
+    /// which advances those six bits on every call, so consecutive calls
+    /// yield distinct UUIDs. At most 64 distinct version-2 UUIDs exist per
+    /// timestamp window; the sequence is shared with the other time-based
+    /// generators, so sustained generation within one window wraps around and
+    /// repeats earlier results. This capacity limit is inherent to the
+    /// version-2 format.
+    ///
+    /// Construction is delegated to [`UUID::new_v2`], using the timestamp,
+    /// clock sequence, and node ID drawn from the shared [`STATE`].
+    ///
+    /// [`State::next_v2`]: crate::State::next_v2
     ///
     /// # Errors
     /// - `TimestampBeforeEpoch` is returned if the current time predates 1582-10-15.
     /// - `TimestampOverflow` is returned if the current time exceeds 5236-03-31.
     pub fn gen_v2(domain: u8, local_id: u32) -> Result<Self, UuidConstructionError> {
-        let mut uuid = Self::gen_v1()?;
+        let mut guard = STATE.lock();
 
-        // Replace time_low with local_id (in big-endian order)
-        uuid.bytes[0..4].copy_from_slice(&local_id.to_be_bytes());
-        uuid.bytes[9] = domain;
+        let (timestamp, clock_seq) = guard.next_v2(SystemTime::now());
+        let node_id = guard.node_id;
 
-        Ok(uuid.with_version(2))
+        drop(guard);
+
+        Self::new_v2(domain, local_id, timestamp, clock_seq, *node_id)
     }
 }
 
@@ -78,6 +98,35 @@ mod tests {
             let u = v2(domain, 7);
             assert_eq!(u.bytes[9], domain);
         }
+    }
+
+    /// Consecutive calls must differ via the surviving clock-sequence bits.
+    ///
+    /// Concurrent tests share the global [`STATE`](crate::STATE) and may
+    /// advance the clock sequence between the two calls; an interleaved
+    /// advancement congruent to −2⁸ modulo 2¹⁴ realigns the surviving bits
+    /// and legitimately yields an equal pair. A small tolerance keeps the
+    /// test deterministic without masking a wiring regression: drawing from
+    /// `State::next` instead of `State::next_v2` would leave nearly every
+    /// pair equal.
+    #[test]
+    fn consecutive_calls_produce_distinct_uuids() {
+        let mut equal_pairs = 0;
+
+        for _ in 0..100 {
+            let first = v2(1, 42);
+            let second = v2(1, 42);
+
+            if first == second {
+                equal_pairs += 1;
+            }
+        }
+
+        assert!(
+            equal_pairs < 3,
+            "consecutive UUIDs must differ via the surviving clock-sequence bits \
+             ({equal_pairs} equal pairs out of 100)"
+        );
     }
 
     #[test]
