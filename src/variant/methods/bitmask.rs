@@ -6,9 +6,10 @@ impl Variant {
     #[must_use]
     pub const fn bitmask(self) -> u8 {
         match self {
-            // The NCS-compatible layout is identified by a cleared top bit in the
-            // clock-seq high byte; this mask preserves the low four payload bits.
-            Self::NCS => 0x0F,
+            // The NCS-compatible layout is identified by a cleared top bit in
+            // the clock-seq high byte, matching `get_variant`, which classifies
+            // any byte below 0x80 as NCS; the remaining seven bits are payload.
+            Self::NCS => 0x7F,
             // RFC 4122 / 9562 UUIDs reserve the top two bits for the variant and
             // preserve the remaining six payload bits.
             Self::OSF => 0x3F,
@@ -26,7 +27,7 @@ mod tests {
     #[test]
     fn test_variant_bitmask_returns_correct_value_for_each_variant() {
         // The bitmask preserves data bits and clears all variant bits.
-        assert_eq!(Variant::NCS.bitmask(), 0x0F); // bits 0-3 (address family 0-13)
+        assert_eq!(Variant::NCS.bitmask(), 0x7F); // bits 0-6 (variant is the top bit)
         assert_eq!(Variant::OSF.bitmask(), 0x3F); // bits 0-5
         assert_eq!(Variant::DCOM.bitmask(), 0x1F); // bits 0-4
         assert_eq!(Variant::Reserved.bitmask(), 0x1F); // bits 0-4
@@ -36,7 +37,7 @@ mod tests {
     fn ncs_preserves_data_bits_for_all_inputs() {
         let bitmask = Variant::NCS.bitmask();
         let prefix = Variant::NCS.prefix();
-        let data_mask = 0x0Fu8; // bits 0-3 (NCS address family 0-13)
+        let data_mask = 0x7Fu8; // bits 0-6 (NCS reserves only the top bit)
         for original in 0u8..=255 {
             let result = (original & bitmask) | prefix;
             assert_eq!(
