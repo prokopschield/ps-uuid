@@ -9,17 +9,27 @@ impl UUID {
     /// Extract the embedded timestamp as a `SystemTime`, if present.
     ///
     /// Returns `None` if the UUID does not encode a timestamp.
+    ///
+    /// Version-2 (DCE Security) UUIDs overwrite the low 32 bits of the timestamp
+    /// with the local ID, so the returned instant is truncated to the surviving
+    /// high bits: its resolution is about 429 seconds, and it never exceeds the
+    /// true generation time.
     #[must_use]
     pub fn get_timestamp(&self) -> Option<SystemTime> {
         match (self.get_version(), self.get_variant()) {
-            // v1/v2: 60-bit timestamp, 100ns intervals since 1582-10-15
-            (Some(1 | 2), crate::Variant::OSF) => {
-                let time_low = u32::from_be_bytes([
-                    self.bytes[0],
-                    self.bytes[1],
-                    self.bytes[2],
-                    self.bytes[3],
-                ]);
+            // v1/v2: 60-bit timestamp, 100ns intervals since 1582-10-15.
+            //
+            // A version-2 UUID overwrites the low 32 bits (`time_low`) with the
+            // local ID, so those bits are not recoverable; treat them as zero.
+            // The reconstructed instant then retains only the surviving high
+            // bits, giving a resolution of 2^32 * 100 ns (about 429 seconds),
+            // and never exceeds the true generation time.
+            (Some(version @ (1 | 2)), crate::Variant::OSF) => {
+                let time_low = if version == 2 {
+                    0
+                } else {
+                    u32::from_be_bytes([self.bytes[0], self.bytes[1], self.bytes[2], self.bytes[3]])
+                };
                 let time_mid = u16::from_be_bytes([self.bytes[4], self.bytes[5]]);
                 let time_hi = u16::from_be_bytes([self.bytes[6], self.bytes[7]]) & 0x0FFF;
                 let timestamp: u64 =
@@ -329,24 +339,32 @@ mod tests {
     }
 
     #[test]
-    fn v2_timestamp_exact_unix_epoch() {
+    fn v2_timestamp_ignores_overwritten_time_low() {
+        // v2 replaces time_low with the local ID, so get_timestamp must treat
+        // the low 32 bits as zero regardless of what they contain.
         let ticks = UUID_UNIX_TICKS;
-        let time_low = (ticks & 0xFFFF_FFFF) as u32;
         let time_mid = ((ticks >> 32) & 0xFFFF) as u16;
         let time_hi_ver = (((ticks >> 48) & 0x0FFF) as u16) | 0x2000; // ver = 2
 
         let mut b = [0u8; 16];
-        b[0] = (time_low >> 24) as u8;
-        b[1] = (time_low >> 16) as u8;
-        b[2] = (time_low >> 8) as u8;
-        b[3] = time_low as u8;
+        // An arbitrary local ID occupies the time_low field and must be ignored.
+        b[0..4].copy_from_slice(&0xDEAD_BEEFu32.to_be_bytes());
         b[4] = (time_mid >> 8) as u8;
         b[5] = time_mid as u8;
         b[6] = (time_hi_ver >> 8) as u8;
         b[7] = time_hi_ver as u8;
         b[8] = 0x80;
         let uuid = UUID::from_bytes(b);
-        assert_eq!(uuid.get_timestamp(), Some(SystemTime::UNIX_EPOCH));
+
+        // Only the high 28 bits survive, so the result is the epoch tick count
+        // with its low 32 bits cleared.
+        let surviving = ticks & !0xFFFF_FFFFu64;
+        let expected = Gregorian::epoch()
+            + Duration::new(
+                surviving / HUNDRED_NS_PER_SEC,
+                (surviving % HUNDRED_NS_PER_SEC) as u32 * 100,
+            );
+        assert_eq!(uuid.get_timestamp(), Some(expected));
     }
 
     #[test]
