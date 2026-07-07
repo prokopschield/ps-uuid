@@ -30,7 +30,7 @@ impl UUID {
         // 48-bit Unix-epoch milliseconds (network order)
         uuid.bytes[0..6].copy_from_slice(&timestamp.as_millis().to_be_bytes()[10..16]);
 
-        // Sub-millisecond nanoseconds -> 18 extra timestamp bits
+        // Sub-millisecond nanoseconds -> 12 extra timestamp bits
         let nanos = (timestamp.subsec_nanos() % 1_000_000).to_be_bytes();
 
         // Byte 6: Version (0x7_)  + 4 timestamp bits
