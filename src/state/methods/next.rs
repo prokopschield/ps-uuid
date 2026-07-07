@@ -5,7 +5,7 @@ use crate::{methods::TICK, State};
 /// The number of clock-sequence values that may be issued for one tick.
 /// The DCOM variant overwrites the top 3 of the 14 sequence bits, keeping
 /// 13, so a run of more than 2¹³ consecutive values would repeat mod 2¹³.
-const TICK_CAPACITY: u16 = 1 << 13;
+pub(super) const TICK_CAPACITY: u16 = 1 << 13;
 
 impl State {
     /// This method returns the next time-based [`UUID`](crate::UUID)'s
