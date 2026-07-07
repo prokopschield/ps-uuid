@@ -9,6 +9,7 @@ impl Default for State {
             node_id: NodeId::random(),
             seq: random(),
             stalled: 0,
+            seq_v2: random(),
         }
     }
 }

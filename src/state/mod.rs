@@ -20,6 +20,11 @@ pub struct State {
     pub seq: u16,
     /// The number of clock-sequence values issued for the current tick.
     stalled: u16,
+    /// A dedicated counter for the six clock-sequence bits a version-2 UUID
+    /// retains. Stepped only by [`State::next_v2`], so traffic through
+    /// [`State::next`] cannot realign the surviving bits and duplicate a
+    /// version-2 UUID within a timestamp window.
+    seq_v2: u8,
 }
 
 /// The process-wide [`State`] guarding time-based UUID generation.

@@ -2,28 +2,23 @@ use std::time::SystemTime;
 
 use crate::{methods::TICK, State};
 
-use super::next::TICK_CAPACITY;
-
-/// The clock-sequence step for version-2 UUIDs. A version-2 UUID replaces
-/// `clock_seq_low` with the local domain, and the variant claims the top two
-/// bits of `clock_seq_hi`, so only bits 8..14 of the clock sequence survive.
-/// Stepping by 2⁸ changes those bits on every call.
-const STEP: u16 = 1 << 8;
-
 impl State {
     /// This method returns the next version-2 [`UUID`](crate::UUID)'s
-    /// timestamp and clock sequence, advancing the clock sequence by 2⁸ so
-    /// that the six bits a version-2 UUID retains change on every call.
+    /// timestamp and clock sequence, advancing a dedicated counter so that the
+    /// six clock-sequence bits a version-2 UUID retains change on every call.
     ///
-    /// Unlike [`State::next`], the clock sequence advances even when the
-    /// clock has moved to a new tick: a version-2 UUID discards the low 32
-    /// bits of the timestamp, so a fresh tick alone does not distinguish it
-    /// from its predecessor. The tick budget is shared with [`State::next`]:
-    /// each call consumes 2⁸ sequence values, and the next tick is borrowed
-    /// once the current tick's capacity is exhausted.
+    /// A version-2 UUID discards the low 32 timestamp bits (they carry the
+    /// local ID) and byte 9 (it carries the domain), so within one 2³²-tick
+    /// (about 429 s) window only six clock-sequence bits distinguish UUIDs
+    /// sharing a domain, local ID, and node. Those six bits come from a
+    /// counter stepped only here, independent of the shared clock sequence
+    /// that [`State::next`] advances, so version-1, version-6, and DCOM
+    /// traffic cannot realign them. A window therefore yields all 64 distinct
+    /// values before wrapping.
     ///
-    /// The returned timestamp is non-decreasing across calls and may run
-    /// slightly ahead of the provided clock while the clock stands still.
+    /// The returned timestamp tracks the shared last timestamp and is
+    /// non-decreasing across calls; it may run slightly ahead of the provided
+    /// clock while the clock stands still.
     ///
     /// # Usage
     ///
@@ -34,26 +29,16 @@ impl State {
     /// let (timestamp, clock_seq) = STATE.lock().next_v2(SystemTime::now());
     /// ```
     pub fn next_v2(&mut self, timestamp: SystemTime) -> (SystemTime, u16) {
-        self.seq = self.seq.wrapping_add(STEP) & 0x3FFF;
-
         if timestamp > self.last_ts + TICK {
-            // The clock advanced past the current tick: open a new window.
+            // The clock advanced past the current tick: adopt it and reset the
+            // shared tick budget that `next` maintains.
             self.last_ts = timestamp;
             self.stalled = 0;
-        } else {
-            // Same tick, or a backward-moving clock: account for the values
-            // this call consumed.
-            self.stalled += STEP;
-
-            if self.stalled >= TICK_CAPACITY {
-                // The sequence values for this tick are exhausted: borrow
-                // the next tick instead of repeating one.
-                self.last_ts += TICK;
-                self.stalled = 0;
-            }
         }
 
-        (self.last_ts, self.seq)
+        self.seq_v2 = self.seq_v2.wrapping_add(1) & 0x3F;
+
+        (self.last_ts, u16::from(self.seq_v2) << 8)
     }
 }
 
@@ -78,6 +63,7 @@ mod tests {
             node_id: NodeId::random(),
             seq: 0,
             stalled: 0,
+            seq_v2: 0,
         };
 
         let frozen = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
@@ -105,6 +91,7 @@ mod tests {
             node_id: NodeId::random(),
             seq: 0,
             stalled: 0,
+            seq_v2: 0,
         };
 
         let frozen = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
@@ -124,36 +111,54 @@ mod tests {
         );
     }
 
-    /// Mixed `next` and `next_v2` traffic must never repeat a
-    /// (tick, 13-bit clock sequence) pair.
+    /// Interleaved `next` traffic must not change the version-2 sequence.
+    ///
+    /// The six bits a version-2 UUID retains come from a dedicated counter, so
+    /// version-1, version-6, and DCOM calls through `next` cannot perturb them:
+    /// the surviving values a run of `next_v2` calls produces are identical
+    /// whether or not `next` calls fall in between.
     #[test]
-    fn mixed_with_next_never_repeats_a_pair() {
-        let mut state = State {
+    fn interleaved_next_does_not_change_v2_sequence() {
+        let frozen = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+
+        let mut clean = State {
             last_ts: UNIX_EPOCH,
             node_id: NodeId::random(),
             seq: 0,
             stalled: 0,
+            seq_v2: 0,
         };
 
-        let frozen = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+        let clean_bits: Vec<u16> = (0..64)
+            .map(|_| surviving_bits(clean.next_v2(frozen).1))
+            .collect();
 
-        let mut pairs = HashSet::new();
-        let mut previous = UNIX_EPOCH;
+        let mut noisy = State {
+            last_ts: UNIX_EPOCH,
+            node_id: NodeId::random(),
+            seq: 0,
+            stalled: 0,
+            seq_v2: 0,
+        };
 
-        for round in 0..10_000 {
-            let (timestamp, seq) = if round % 3 == 0 {
-                state.next_v2(frozen)
-            } else {
-                state.next(frozen)
-            };
+        let mut noisy_bits = Vec::with_capacity(64);
 
-            assert!(timestamp >= previous, "Timestamps must never decrease.");
-            assert!(
-                pairs.insert((timestamp, seq & 0x1FFF)),
-                "No (tick, 13-bit clock sequence) pair may repeat."
-            );
+        for i in 0..64 {
+            for _ in 0..(i * 7 + 3) {
+                noisy.next(frozen);
+            }
 
-            previous = timestamp;
+            noisy_bits.push(surviving_bits(noisy.next_v2(frozen).1));
         }
+
+        assert_eq!(
+            clean_bits, noisy_bits,
+            "Interleaved next() traffic must not change the version-2 sequence."
+        );
+        assert_eq!(
+            clean_bits.iter().collect::<HashSet<_>>().len(),
+            64,
+            "A window must yield all 64 distinct surviving values."
+        );
     }
 }
