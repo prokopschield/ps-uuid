@@ -28,5 +28,12 @@ pub struct State {
 }
 
 /// The process-wide [`State`] guarding time-based UUID generation.
+///
+/// The state is per-process, so a `fork()` without a following `exec()`
+/// duplicates it into the child. Until either side advances far enough to
+/// diverge, the parent and child draw from identical clock sequences and can
+/// emit identical version-1, version-6, and DCOM UUIDs. Programs that fork and
+/// keep generating UUIDs in both processes should reseed the child, for example
+/// by assigning a fresh [`State::node_id`] after the fork.
 pub static STATE: std::sync::LazyLock<Arc<Mutex<State>>> =
     std::sync::LazyLock::new(|| Arc::new(Mutex::new(State::default())));
