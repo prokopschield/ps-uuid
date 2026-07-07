@@ -14,9 +14,15 @@ impl FromStr for UUID {
     ///   - as an URN                        `urn:uuid:<canonical>`
     fn from_str(mut s: &str) -> Result<Self, Self::Err> {
         // 1. Strip leading `urn:uuid:` (case-insensitive).
+        //
+        // Compare on the raw bytes rather than slicing the `&str`: a byte-index
+        // slice such as `s[..URN.len()]` panics when the boundary falls inside a
+        // multi-byte character, so non-ASCII input must not reach it.
         const URN: &str = "urn:uuid:";
-        if s.len() >= URN.len() && s[..URN.len()].eq_ignore_ascii_case(URN) {
-            s = &s[URN.len()..];
+        if let Some(prefix) = s.as_bytes().get(..URN.len()) {
+            if prefix.eq_ignore_ascii_case(URN.as_bytes()) {
+                s = &s[URN.len()..];
+            }
         }
 
         // 2. Strip optional surrounding braces.
@@ -390,6 +396,21 @@ mod tests {
     fn rejects_all_braces() {
         let s = "{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{";
         assert_eq!(UUID::from_str(s), Err(UuidParseError::InvalidBraces));
+    }
+
+    #[test]
+    fn rejects_non_ascii_without_panicking() {
+        // A byte-index slice of the URN prefix would panic on a char boundary
+        // in the middle of these multi-byte characters; the parser must instead
+        // reject the input cleanly.
+        assert_eq!(UUID::from_str("😀😀😀"), Err(UuidParseError::InvalidLength));
+
+        // Eight emoji are 32 bytes, so the URN body reaches the hex scanner and
+        // reports the offending character instead of panicking.
+        assert_eq!(
+            UUID::from_str("urn:uuid:😀😀😀😀😀😀😀😀"),
+            Err(UuidParseError::InvalidCharacter { ch: '😀', idx: 0 })
+        );
     }
 
     #[test]
