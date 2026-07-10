@@ -98,8 +98,41 @@ impl PrimInt for UUID {
         Self::from_u128(self.to_u128().to_le())
     }
 
+    /// Raises `self` to the power of `exp`, wrapping modulo 2¹²⁸ on
+    /// overflow, consistent with the [`Pow`](num_traits::Pow)
+    /// implementations and the `+`, `-`, and `*` operators.
     #[inline]
     fn pow(self, exp: u32) -> Self {
-        Self::from_u128(self.to_u128().pow(exp))
+        Self::from_u128(self.to_u128().wrapping_pow(exp))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use num_traits::{Pow, PrimInt};
+
+    use crate::UUID;
+
+    #[test]
+    fn pow_wraps_on_overflow() {
+        // 2^128 exceeds the 128-bit range and must wrap to zero rather than
+        // panicking in overflow-checked builds.
+        let base = UUID::from(2u128);
+
+        assert_eq!(PrimInt::pow(base, 128), UUID::nil());
+    }
+
+    #[test]
+    fn pow_agrees_with_the_pow_trait() {
+        // PrimInt::pow and Pow::pow must produce identical results,
+        // including in the overflow range.
+        let base = UUID::from(0x1_0000_0001u128);
+
+        for exp in [0u32, 1, 2, 7, 33, 128, 200] {
+            let via_prim_int = PrimInt::pow(base, exp);
+            let via_pow: UUID = Pow::pow(base, exp);
+
+            assert_eq!(via_prim_int, via_pow, "paths disagree for exponent {exp}");
+        }
     }
 }
