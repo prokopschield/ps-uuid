@@ -32,6 +32,13 @@ rkyv = ["dep:rkyv"]
 serde = ["dep:serde"]
 uuid-crate-compat = ["dep:uuid"]
 
+[lints]
+clippy.nursery.level = "warn"
+clippy.nursery.priority = -1
+clippy.pedantic.level = "deny"
+clippy.pedantic.priority = -1
+clippy.redundant_pub_crate = "allow"
+
 [profile.dev]
 opt-level = 3
 
