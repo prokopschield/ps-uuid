@@ -38,6 +38,12 @@ impl UUID {
     /// high bits: its resolution is about 429 seconds, and it never exceeds the
     /// true generation time.
     ///
+    /// Version-7 UUIDs are decoded to whole milliseconds. RFC 9562 permits
+    /// the 12 bits following the timestamp to hold either a sub-millisecond
+    /// fraction (as this crate's encoder stores) or randomness, and the two
+    /// cannot be told apart, so those bits are never decoded and the
+    /// returned instant is floored to the millisecond.
+    ///
     /// UUIDs of the DCOM variant are decoded using this crate's `FILETIME`
     /// encoding (see [`UUID::new_dcom`]); for Microsoft GUIDs from other
     /// sources, such as COM interface identifiers, the returned instant is

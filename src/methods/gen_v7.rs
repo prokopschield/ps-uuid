@@ -12,10 +12,9 @@ impl UUID {
     /// 2. That time is converted to a `Duration` since the Unix epoch.  
     /// 3. Range checks ensure the 48-bit millisecond field is valid
     ///    (epoch … ≈ 10889-08-02 05:31:50.655 UTC).  
-    /// 4. The remaining **64 random bits (8 bytes)** are filled with CSPRNG
-    ///    data.  
+    /// 4. The remaining **eight bytes** are filled with CSPRNG data.
     /// 5. `UUID::new_v7` assembles the final UUID and patches
-    ///    version & variant bits.
+    ///    version & variant bits, so 62 of the random bits survive.
     ///
     /// # Errors
     /// - `TimestampBeforeEpoch` is returned while the issued timestamp
