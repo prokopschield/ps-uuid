@@ -5,11 +5,11 @@ use crate::UUID;
 impl UUID {
     /// Build an RFC-4122 **Version 7** (Unix-epoch, time-ordered) UUID.
     ///
-    /// Layout (big-endian, draft RFC “UUID Version 7”, 2022-07-07):
+    /// Layout (big-endian, RFC 9562 §5.7):
     ///
     /// - bytes 0‥=5 – 48-bit Unix epoch timestamp in **milliseconds**
-    /// - bytes 6‥=7 – 12 extra timestamp bits derived from the current
-    ///   sub-millisecond nanoseconds
+    /// - bytes 6‥=7 – 12 extra timestamp bits: the sub-millisecond fraction
+    ///   scaled to 4096 steps (RFC 9562 §6.2 Method 3, ≈244 ns granularity)
     ///   - upper nibble of byte 6 is the version \(7\)
     /// - bytes 8‥=15 – 64 bits of caller-supplied randomness
     ///   - two MSBs of byte 8 are the RFC-4122 variant
@@ -30,14 +30,16 @@ impl UUID {
         // 48-bit Unix-epoch milliseconds (network order)
         uuid.bytes[0..6].copy_from_slice(&timestamp.as_millis().to_be_bytes()[10..16]);
 
-        // Sub-millisecond nanoseconds -> 12 extra timestamp bits
-        let nanos = (timestamp.subsec_nanos() % 1_000_000).to_be_bytes();
+        // Sub-millisecond nanoseconds -> 12 extra timestamp bits (RFC 9562
+        // §6.2 Method 3: the sub-millisecond fraction scaled to 4096 steps).
+        // The maximum numerator, 999_999 * 4096, cannot overflow a u64.
+        let extra = u64::from(timestamp.subsec_nanos() % 1_000_000) * 4096 / 1_000_000;
 
-        // Byte 6: Version (0x7_)  + 4 timestamp bits
-        uuid.bytes[6] = 0x70 | nanos[1];
+        // Byte 6: version (0x7_) + the 4 high bits
+        uuid.bytes[6] = 0x70 | (((extra >> 8) & 0x0F) as u8);
 
-        // Byte 7: next 8 timestamp bits
-        uuid.bytes[7] = nanos[2];
+        // Byte 7: the 8 low bits
+        uuid.bytes[7] = (extra & 0xFF) as u8;
 
         // Caller-provided random payload
         uuid.bytes[8..].copy_from_slice(&random_bytes);
@@ -88,16 +90,49 @@ mod tests {
 
     #[test]
     fn extra_timestamp_bits_are_encoded() {
-        // Choose 987 654 ns (0x0F 1206) inside the millisecond
+        // 987 654 ns inside the millisecond:
+        // floor(987_654 * 4096 / 1_000_000) = 4045 = 0xFCD
         let dur = Duration::from_millis(123) + Duration::from_nanos(987_654);
         let uuid = UUID::new_v7(dur, [0; 8]);
         let b = uuid.as_bytes();
 
-        let nanos = (987_654u32).to_be_bytes();
+        assert_eq!(b[6] & 0x0F, 0x0F);
+        assert_eq!(b[7], 0xCD);
+    }
 
-        // byte 6 low nibble & byte 7 must match nanos[1] / nanos[2]
-        assert_eq!(b[6] & 0x0F, nanos[1]);
-        assert_eq!(b[7], nanos[2]);
+    #[test]
+    fn extra_timestamp_bits_span_the_full_range() {
+        // 999 999 ns scales to 4095 = 0xFFF; the version nibble survives.
+        let top = UUID::new_v7(Duration::from_nanos(999_999), [0; 8]);
+
+        assert_eq!(top.as_bytes()[6], 0x7F);
+        assert_eq!(top.as_bytes()[7], 0xFF);
+
+        // 0 ns scales to 0x000.
+        let bottom = UUID::new_v7(Duration::from_nanos(0), [0; 8]);
+
+        assert_eq!(bottom.as_bytes()[6], 0x70);
+        assert_eq!(bottom.as_bytes()[7], 0x00);
+    }
+
+    #[test]
+    fn a_256_ns_step_always_advances_the_encoding() {
+        // The generator's self-advance is 256 ns; each step must strictly
+        // increase the encoded (millisecond, extra-bits) pair.
+        let base = Duration::from_millis(123);
+
+        let mut previous = UUID::new_v7(base, [0; 8]);
+
+        for step in 1..3907u64 {
+            let current = UUID::new_v7(base + Duration::from_nanos(step * 256), [0; 8]);
+
+            assert!(
+                current.bytes > previous.bytes,
+                "step {step} did not advance the encoding"
+            );
+
+            previous = current;
+        }
     }
 
     #[test]
