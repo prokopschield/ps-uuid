@@ -31,8 +31,9 @@ impl State {
     /// ```
     pub fn next_v2(&mut self, timestamp: SystemTime) -> (SystemTime, u16) {
         if timestamp > self.last_ts + TICK && Self::is_adoptable(timestamp) {
-            // The clock advanced past the current tick and is representable:
-            // adopt it and reset the shared tick budget that `next` maintains.
+            // The clock advanced past the current tick and the reading is
+            // representable: adopt it and reset the shared tick budget that
+            // `next` maintains.
             self.last_ts = timestamp;
             self.stalled = 0;
         }

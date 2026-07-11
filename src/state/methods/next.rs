@@ -27,9 +27,9 @@ impl State {
     ///
     /// The returned timestamp is therefore non-decreasing across calls and may
     /// run slightly ahead of the provided clock while the clock stands still.
-    /// An unrepresentable reading is never adopted, so a transient bogus clock
-    /// cannot poison the state; generation continues on the last good tick and
-    /// resumes normal adoption once the clock recovers.
+    /// An unrepresentable reading is never adopted: the same-tick path applies
+    /// instead, so generation continues from the last issued tick and resumes
+    /// normal adoption once the clock recovers.
     ///
     /// # Usage
     ///
@@ -41,7 +41,8 @@ impl State {
     /// ```
     pub fn next(&mut self, timestamp: SystemTime) -> (SystemTime, u16) {
         if timestamp > self.last_ts + TICK && Self::is_adoptable(timestamp) {
-            // The clock advanced past the current tick: open a new window.
+            // The clock advanced past the current tick and the reading is
+            // representable: open a new window.
             self.last_ts = timestamp;
             self.stalled = 0;
         } else {
@@ -178,7 +179,8 @@ mod tests {
         assert_eq!(timestamp, sane);
     }
 
-    /// The last representable second is adopted; one second later is not.
+    /// The maximum representable tick (2⁶⁰ − 1 ticks after 1582-10-15) is
+    /// adopted; one 100 ns tick past it is not.
     #[test]
     fn adoption_boundary_at_the_maximum_tick() {
         let mut state = State {
@@ -189,8 +191,8 @@ mod tests {
             seq_v2: 0,
         };
 
-        let last_within = Gregorian::epoch() + Duration::from_secs(115_292_150_460);
-        let first_beyond = Gregorian::epoch() + Duration::from_secs(115_292_150_461);
+        let last_within = Gregorian::epoch() + Duration::new(115_292_150_460, 684_697_500);
+        let first_beyond = last_within + Duration::from_nanos(100);
 
         let (timestamp, _) = state.next(last_within);
 
