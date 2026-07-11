@@ -16,7 +16,7 @@ impl UUID {
         let mut guard = STATE.lock();
 
         let (timestamp, clock_seq) = guard.next(SystemTime::now());
-        let node_id = guard.node_id;
+        let node_id = guard.node_id();
 
         drop(guard);
 

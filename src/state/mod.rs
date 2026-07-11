@@ -16,11 +16,11 @@ pub struct State {
     /// a 60-bit RFC 4122 tick count are never adopted, so adoption alone can
     /// never move the value out of the range the time-based constructors
     /// accept.
-    pub last_ts: SystemTime,
+    last_ts: SystemTime,
     /// The node identifier embedded in generated UUIDs.
-    pub node_id: NodeId,
+    node_id: NodeId,
     /// The clock sequence, incremented to disambiguate UUIDs sharing a timestamp.
-    pub seq: u16,
+    seq: u16,
     /// The number of clock-sequence values issued for the current tick.
     stalled: u16,
     /// A dedicated counter for the six clock-sequence bits a version-2 UUID
@@ -37,7 +37,7 @@ pub struct State {
 /// Until either side advances far enough to diverge, the parent and child draw
 /// from identical clock sequences and can emit identical version-1, version-2,
 /// version-6, and DCOM UUIDs. Programs that fork and keep generating UUIDs in
-/// both processes should reseed the child, for example by assigning a fresh
-/// [`State::node_id`] after the fork.
+/// both processes should reseed the child, for example by calling
+/// `STATE.lock().set_node_id(NodeId::random())` after the fork.
 pub static STATE: std::sync::LazyLock<Arc<Mutex<State>>> =
     std::sync::LazyLock::new(|| Arc::new(Mutex::new(State::default())));
