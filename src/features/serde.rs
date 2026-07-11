@@ -259,6 +259,71 @@ mod tests {
         assert!(res.is_err());
     }
 
+    #[test]
+    fn json_embeds_uuids_as_canonical_strings() {
+        #[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug)]
+        struct Wrapper {
+            id: UUID,
+        }
+
+        let wrapper = Wrapper { id: sample_uuid() };
+
+        let json =
+            serde_json::to_string(&wrapper).expect("serde_json should serialize the wrapper");
+
+        assert_eq!(json, "{\"id\":\"550e8400-e29b-41d4-a716-446655440000\"}");
+
+        let back: Wrapper =
+            serde_json::from_str(&json).expect("serde_json should round-trip the wrapper");
+
+        assert_eq!(wrapper, back);
+    }
+
+    // TOML is human-readable, so it takes the canonical-string path; a TOML
+    // document must be a table, so the UUID is tested as a table value.
+
+    #[test]
+    fn toml_encodes_as_the_canonical_string() {
+        #[derive(serde::Serialize)]
+        struct Wrapper {
+            id: UUID,
+        }
+
+        let wrapper = Wrapper { id: sample_uuid() };
+
+        let toml = toml::to_string(&wrapper).expect("toml should serialize the wrapper");
+
+        assert_eq!(toml, "id = \"550e8400-e29b-41d4-a716-446655440000\"\n");
+    }
+
+    #[test]
+    fn round_trip_toml() {
+        #[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug)]
+        struct Wrapper {
+            id: UUID,
+        }
+
+        let wrapper = Wrapper { id: sample_uuid() };
+
+        let toml = toml::to_string(&wrapper).expect("toml should serialize the wrapper");
+        let back: Wrapper = toml::from_str(&toml).expect("toml should round-trip the wrapper");
+
+        assert_eq!(wrapper, back);
+    }
+
+    #[test]
+    fn toml_rejects_an_invalid_string() {
+        #[derive(serde::Deserialize, Debug)]
+        #[allow(dead_code)]
+        struct Wrapper {
+            id: UUID,
+        }
+
+        let res: Result<Wrapper, _> = toml::from_str("id = \"not-a-uuid\"");
+
+        assert!(res.is_err());
+    }
+
     // bincode and postcard are not self-describing and report
     // is_human_readable() == false, so the following tests exercise the
     // binary path that deserialize_any cannot support.
