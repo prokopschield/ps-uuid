@@ -18,8 +18,12 @@ impl UUID {
     ///    version & variant bits.
     ///
     /// # Errors
-    /// - `TimestampBeforeEpoch`  if the system clock is before 1970-01-01.
-    /// - `TimestampOverflow`     if the millisecond counter ≥ 2⁴⁸.
+    /// - `TimestampBeforeEpoch` is returned while the issued timestamp
+    ///   precedes 1970-01-01, i.e. until a reading at or after the Unix epoch
+    ///   is adopted.
+    ///
+    /// Adoption is capped at the 60-bit RFC 4122 range (through 5236-03-31),
+    /// so the 48-bit millisecond field cannot overflow from clock input.
     pub fn gen_v7() -> Result<Self, UuidConstructionError> {
         // 1 — obtain monotonic timestamp
         let timestamp = {

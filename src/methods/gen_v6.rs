@@ -8,8 +8,11 @@ impl UUID {
     /// and clock sequence held in the global `STATE` are used.
     ///
     /// # Errors
-    /// - `TimestampBeforeEpoch` if the current time predates 1582-10-15.
-    /// - `TimestampOverflow`    if the current time exceeds 5236-03-31.
+    /// - `TimestampOverflow` is returned once the shared generator state has
+    ///   exhausted the 60-bit timestamp range, which ends 5236-03-31.
+    ///
+    /// A clock reading before 1582-10-15 or beyond the representable range is
+    /// never adopted; generation continues from the last issued tick.
     pub fn gen_v6() -> Result<Self, UuidConstructionError> {
         let mut guard = STATE.lock();
 

@@ -14,7 +14,16 @@ impl UUID {
     /// slightly ahead of the real clock.
     ///
     /// # Errors
-    /// - [`UuidConstructionError`] is returned if the current system time is out of range.
+    /// - [`UuidConstructionError::TimestampBeforeEpoch`] is returned while the
+    ///   issued timestamp precedes 1601-01-01, the start of the `FILETIME`
+    ///   epoch: a fresh state starts at 1582-10-15, so the error persists
+    ///   until a reading at or after 1601-01-01 is adopted.
+    ///
+    /// Because the state is shared with the version-1 family, adoption of
+    /// clock readings is capped at the 60-bit RFC 4122 range (through
+    /// 5236-03-31) even though a `FILETIME` reaches the year 60056; a reading
+    /// beyond the cap is never adopted, and generation continues from the last
+    /// issued tick, so `TimestampOverflow` cannot occur from clock input.
     pub fn gen_dcom(node_id: [u8; 6]) -> Result<Self, UuidConstructionError> {
         let (timestamp, clock_seq) = STATE.lock().next(SystemTime::now());
 
