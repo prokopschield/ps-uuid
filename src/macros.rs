@@ -69,8 +69,13 @@ impl UUID {
                 continue;
             }
 
+            assert!(i + 1 < end, "UUID hex digits must come in pairs");
+
             let high = hex_digit(c);
             let low = hex_digit(s[i + 1]);
+
+            assert!(byte_idx < 16, "UUID contains too many hex digits");
+
             bytes[byte_idx] = (high << 4) | low;
             byte_idx += 1;
             i += 2;
@@ -317,6 +322,22 @@ mod tests {
     fn parse_max_upper() {
         const MAX: UUID = uuid!("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF");
         assert_eq!(MAX, UUID::max());
+    }
+
+    // A 36-character string with no hyphens holds 18 hex pairs; the 17th
+    // write must hit the descriptive guard, not an index-out-of-bounds panic.
+    #[test]
+    #[should_panic(expected = "UUID contains too many hex digits")]
+    fn parse_const_rejects_36_hex_digits_without_hyphens() {
+        let _ = UUID::parse_const("6ba7b8109dad11d180b400c04fd430c8ffff");
+    }
+
+    // Hyphens at positions 8, 13, and 18 leave 33 hex characters, so the
+    // final character is a lone digit whose pair would lie past the end.
+    #[test]
+    #[should_panic(expected = "UUID hex digits must come in pairs")]
+    fn parse_const_rejects_a_trailing_lone_hex_digit() {
+        let _ = UUID::parse_const("6ba7b810-9dad-11d1-80b400c04fd430c8f");
     }
 
     #[test]
