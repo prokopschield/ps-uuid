@@ -70,7 +70,7 @@ mod tests {
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
 
-    use crate::{Gregorian, NodeId, State, STATE, UUID};
+    use crate::{NodeId, State, STATE, UUID};
 
     #[test]
     fn monotonic_and_unique() {
@@ -144,7 +144,7 @@ mod tests {
             seq_v2: 0,
         };
 
-        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+        let bogus = UNIX_EPOCH + Duration::from_secs(200_000_000_000);
 
         let (timestamp, seq) = state.next(bogus);
 
@@ -164,7 +164,7 @@ mod tests {
             seq_v2: 0,
         };
 
-        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+        let bogus = UNIX_EPOCH + Duration::from_secs(200_000_000_000);
 
         for _ in 0..10 {
             let (timestamp, _) = state.next(bogus);
@@ -191,7 +191,9 @@ mod tests {
             seq_v2: 0,
         };
 
-        let last_within = Gregorian::epoch() + Duration::new(115_292_150_460, 684_697_500);
+        // 2^60 - 1 ticks after 1582-10-15, expressed relative to UNIX_EPOCH:
+        // 115_292_150_460.684_697_5 s minus the 12_219_292_800 s epoch offset.
+        let last_within = UNIX_EPOCH + Duration::new(103_072_857_660, 684_697_500);
         let first_beyond = last_within + Duration::from_nanos(100);
 
         let (timestamp, _) = state.next(last_within);

@@ -43,7 +43,7 @@ impl State {
 mod tests {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-    use crate::{Gregorian, NodeId, State, STATE};
+    use crate::{NodeId, State, STATE};
 
     #[test]
     fn always_increments() {
@@ -74,7 +74,7 @@ mod tests {
             seq_v2: 0,
         };
 
-        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+        let bogus = UNIX_EPOCH + Duration::from_secs(200_000_000_000);
 
         let first = state.next_v7(bogus);
         let second = state.next_v7(bogus);

@@ -32,13 +32,13 @@ impl UUID {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
-    use crate::{Gregorian, Variant};
+    use crate::{gregorian::GREGORIAN_OFFSET, Variant};
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     // Manual reference builder using from_parts_v6 -------------------------
     fn manual(time: SystemTime, node: [u8; 6]) -> UUID {
-        let dur = time
-            .duration_since(Gregorian::epoch())
+        let dur = (time + GREGORIAN_OFFSET)
+            .duration_since(UNIX_EPOCH)
             .expect("test timestamp should be after Gregorian epoch");
         let ticks = dur.as_secs() * 10_000_000 + u64::from(dur.subsec_nanos() / 100);
 
@@ -71,6 +71,9 @@ mod tests {
         assert_eq!(&bytes[10..16], &mac);
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
@@ -102,9 +105,12 @@ mod tests {
         assert_eq!(b[6] >> 4, 0b0110);
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn new_v6_rejects_time_before_1582_10_15() {
-        let before_gregorian = Gregorian::epoch() - Duration::from_secs(1);
+        let before_gregorian = crate::Gregorian::epoch() - Duration::from_secs(1);
         let err = UUID::new_v6(before_gregorian, rand::random(), [0; 6])
             .expect_err("new_v6 should reject timestamps before 1582-10-15");
         assert_eq!(err, UuidConstructionError::TimestampBeforeEpoch);

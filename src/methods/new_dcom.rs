@@ -80,7 +80,7 @@ mod tests {
     #![allow(clippy::expect_used)]
     use std::time::{Duration, UNIX_EPOCH};
 
-    use crate::{methods::FILETIME_EPOCH_OFFSET, UuidConstructionError, Variant, UUID};
+    use crate::{methods::FILETIME_EPOCH_OFFSET, Variant, UUID};
 
     const fn sample_node_id() -> [u8; 6] {
         [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB]
@@ -126,30 +126,46 @@ mod tests {
         );
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn rejects_timestamp_before_filetime_epoch() {
         let before_filetime_epoch =
             UNIX_EPOCH - Duration::from_secs(FILETIME_EPOCH_OFFSET / 10_000_000 + 1);
         let result = UUID::new_dcom(before_filetime_epoch, 0, sample_node_id());
 
-        assert_eq!(result, Err(UuidConstructionError::TimestampBeforeEpoch));
+        assert_eq!(
+            result,
+            Err(crate::UuidConstructionError::TimestampBeforeEpoch)
+        );
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn rejects_timestamp_just_before_filetime_epoch() {
         // 1 ns before 1601-01-01 must not round up into the representable range.
         let just_before = UNIX_EPOCH - Duration::new(FILETIME_EPOCH_OFFSET / 10_000_000, 1);
         let result = UUID::new_dcom(just_before, 0, sample_node_id());
 
-        assert_eq!(result, Err(UuidConstructionError::TimestampBeforeEpoch));
+        assert_eq!(
+            result,
+            Err(crate::UuidConstructionError::TimestampBeforeEpoch)
+        );
     }
 
+    // The test instant lies near the year 60056, beyond the maximum the
+    // Windows clock representation can express, so constructing it panics
+    // there before new_dcom is even reached.
+    #[cfg(unix)]
     #[test]
     fn rejects_timestamp_overflow() {
         let overflow = UNIX_EPOCH + Duration::new(u64::MAX / 10_000_000, 999_999_999);
         let result = UUID::new_dcom(overflow, 0, sample_node_id());
 
-        assert_eq!(result, Err(UuidConstructionError::TimestampOverflow));
+        assert_eq!(result, Err(crate::UuidConstructionError::TimestampOverflow));
     }
 
     #[test]

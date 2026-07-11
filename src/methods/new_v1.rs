@@ -41,12 +41,12 @@ mod tests {
     use std::time::{Duration, UNIX_EPOCH};
 
     use super::*;
-    use crate::{Gregorian, Variant, UUID};
+    use crate::{gregorian::GREGORIAN_OFFSET, Variant, UUID};
 
     // Helper: build the “ground truth” through from_parts_v1
     fn manual(time: SystemTime, node: [u8; 6]) -> UUID {
-        let dur = time
-            .duration_since(Gregorian::epoch())
+        let dur = (time + GREGORIAN_OFFSET)
+            .duration_since(UNIX_EPOCH)
             .expect("test timestamp should be after Gregorian epoch");
         let ticks = dur.as_secs() * 10_000_000 + u64::from(dur.subsec_nanos() / 100);
 
@@ -79,6 +79,9 @@ mod tests {
         assert_eq!(&bytes[10..16], &mac);
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn timestamp_before_gregorian_is_rejected() {
         // 31 Dec 1400 00:00:00 UTC
@@ -115,10 +118,13 @@ mod tests {
         assert_eq!(b[6] >> 4, 0b0001);
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn new_v1_rejects_time_before_1582_10_15() {
-        // 1582-10-15 00:00:00 UTC is 12 216 652 800 s before the Unix epoch.
-        let before_gregorian = Gregorian::epoch() - Duration::from_secs(1);
+        // 1582-10-15 00:00:00 UTC is 12 219 292 800 s before the Unix epoch.
+        let before_gregorian = crate::Gregorian::epoch() - Duration::from_secs(1);
 
         eprintln!("{before_gregorian:?}");
 

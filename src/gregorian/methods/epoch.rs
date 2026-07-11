@@ -17,7 +17,9 @@ impl Gregorian {
     }
 }
 
-#[cfg(test)]
+// The epoch instant is expressible only on platforms with a signed clock
+// representation; `epoch()` itself panics elsewhere, as documented.
+#[cfg(all(test, unix))]
 mod tests {
     use std::time::UNIX_EPOCH;
 

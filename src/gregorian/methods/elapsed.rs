@@ -27,19 +27,27 @@ impl Gregorian {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
-    use crate::Gregorian;
+    use std::time::{Duration, UNIX_EPOCH};
+
+    use crate::{gregorian::GREGORIAN_OFFSET, Gregorian};
 
     #[test]
     fn elapsed() {
-        let epoch = Gregorian::epoch();
-
-        let elapsed = Gregorian::elapsed()
+        let since_gregorian = Gregorian::elapsed()
             .expect("The current system time should be after the Gregorian epoch.");
 
-        let difference = (epoch + elapsed)
+        let since_unix = UNIX_EPOCH
             .elapsed()
-            .expect("Time should have elapsed since the calculated timestamp");
+            .expect("The current system time should be after the Unix epoch.");
 
-        assert_eq!(difference.as_secs(), 0, "Values should be equal.");
+        // The second reading is taken later, so the difference of the two
+        // falls short of the epoch offset by exactly the time between the
+        // readings.
+        let skew = GREGORIAN_OFFSET - (since_gregorian - since_unix);
+
+        assert!(
+            skew < Duration::from_secs(1),
+            "The readings should differ by the epoch offset."
+        );
     }
 }

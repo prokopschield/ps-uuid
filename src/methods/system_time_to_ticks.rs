@@ -52,7 +52,7 @@ impl UUID {
 mod tests {
     use std::time::Duration;
 
-    use crate::{DurationToTicksError, Gregorian};
+    use crate::DurationToTicksError;
 
     use super::*;
 
@@ -66,20 +66,26 @@ mod tests {
         assert!(result.is_ok());
     }
 
+    // The test instant precedes 1601-01-01, which only platforms with a
+    // signed clock representation can express.
+    #[cfg(unix)]
     #[test]
     fn time_before_gregorian_epoch_fails() {
         // A time one second before the epoch should fail.
-        let before_epoch = Gregorian::epoch() - Duration::from_secs(1);
+        let before_epoch = crate::Gregorian::epoch() - Duration::from_secs(1);
         assert_eq!(
             UUID::system_time_to_ticks(before_epoch),
             Err(UuidConstructionError::TimestampBeforeEpoch)
         );
     }
 
+    // The epoch instant itself is expressible only on platforms with a
+    // signed clock representation.
+    #[cfg(unix)]
     #[test]
     fn time_at_gregorian_epoch_is_zero_ticks() {
         // The epoch itself should result in zero ticks.
-        assert_eq!(UUID::system_time_to_ticks(Gregorian::epoch()), Ok(0));
+        assert_eq!(UUID::system_time_to_ticks(crate::Gregorian::epoch()), Ok(0));
     }
 
     #[test]
@@ -91,7 +97,7 @@ mod tests {
             (overflow_nanos / 1_000_000_000) as u64,
             (overflow_nanos % 1_000_000_000) as u32,
         );
-        let future_time = Gregorian::epoch() + overflow_duration;
+        let future_time = UNIX_EPOCH + (overflow_duration - GREGORIAN_OFFSET);
 
         assert_eq!(
             UUID::system_time_to_ticks(future_time),

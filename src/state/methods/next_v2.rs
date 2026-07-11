@@ -51,7 +51,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use crate::{Gregorian, NodeId, State};
+    use crate::{NodeId, State};
 
     /// The six clock-sequence bits that survive in a version-2 UUID.
     const fn surviving_bits(seq: u16) -> u16 {
@@ -125,7 +125,7 @@ mod tests {
             seq_v2: 0,
         };
 
-        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+        let bogus = UNIX_EPOCH + Duration::from_secs(200_000_000_000);
 
         let (timestamp, _) = state.next_v2(bogus);
 

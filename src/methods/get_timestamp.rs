@@ -146,14 +146,17 @@ impl UUID {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::cast_possible_truncation, clippy::expect_used)]
-    use crate::{Gregorian, Variant};
+    use crate::Variant;
 
     use super::*;
     use std::time::{Duration, UNIX_EPOCH};
 
     #[test]
     fn v1_and_v2_timestamp_roundtrip() {
-        let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
+        // One billion seconds after 1582-10-15, i.e. the year 1614: expressed
+        // relative to UNIX_EPOCH so the test runs on platforms that cannot
+        // represent the Gregorian epoch itself.
+        let t = UNIX_EPOCH - (GREGORIAN_OFFSET - Duration::from_secs(1_000_000_000));
         let uuid = UUID::from_parts_v1(0x6fc1_0000, 0x86f2, 0x23, 0x1234, [1, 2, 3, 4, 5, 6]);
         let ts = uuid
             .get_timestamp()
@@ -163,7 +166,7 @@ mod tests {
 
     #[test]
     fn v6_timestamp_roundtrip() {
-        let t = Gregorian::epoch() + Duration::from_secs(1_000_000_000);
+        let t = UNIX_EPOCH - (GREGORIAN_OFFSET - Duration::from_secs(1_000_000_000));
         let uuid = UUID::from_parts_v6(0x0238_6f26, 0xfc10, 0x6000, 0x1234, [1, 2, 3, 4, 5, 6]);
         let ts = uuid
             .get_timestamp()
@@ -374,12 +377,14 @@ mod tests {
         let uuid = UUID::from_bytes(b);
 
         // Only the high 28 bits survive, so the result is the epoch tick count
-        // with its low 32 bits cleared.
+        // with its low 32 bits cleared: an instant shortly before UNIX_EPOCH
+        // by exactly the cleared ticks.
         let surviving = ticks & !0xFFFF_FFFFu64;
-        let expected = Gregorian::epoch()
-            + Duration::new(
-                surviving / HUNDRED_NS_PER_SEC,
-                (surviving % HUNDRED_NS_PER_SEC) as u32 * 100,
+        let deficit = ticks - surviving;
+        let expected = UNIX_EPOCH
+            - Duration::new(
+                deficit / HUNDRED_NS_PER_SEC,
+                (deficit % HUNDRED_NS_PER_SEC) as u32 * 100,
             );
         assert_eq!(uuid.get_timestamp(), Some(expected));
     }
@@ -427,10 +432,11 @@ mod tests {
         b[8] = 0x80; // RFC-4122 variant
         let uuid = UUID::from_bytes(b);
 
-        let expected = Gregorian::epoch()
+        let since_unix = ticks - UUID_UNIX_TICKS;
+        let expected = UNIX_EPOCH
             + Duration::new(
-                ticks / HUNDRED_NS_PER_SEC,
-                (ticks % HUNDRED_NS_PER_SEC) as u32 * 100,
+                since_unix / HUNDRED_NS_PER_SEC,
+                (since_unix % HUNDRED_NS_PER_SEC) as u32 * 100,
             );
         assert_eq!(uuid.get_timestamp(), Some(expected));
     }
