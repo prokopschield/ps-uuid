@@ -48,6 +48,7 @@ impl UUID {
 }
 
 #[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::expect_used)]
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
@@ -97,7 +98,10 @@ mod tests {
             (overflow_nanos / 1_000_000_000) as u64,
             (overflow_nanos % 1_000_000_000) as u32,
         );
-        let future_time = UNIX_EPOCH + (overflow_duration - GREGORIAN_OFFSET);
+        let future_time = UNIX_EPOCH
+            + overflow_duration
+                .checked_sub(GREGORIAN_OFFSET)
+                .expect("subtraction should succeed");
 
         assert_eq!(
             UUID::system_time_to_ticks(future_time),

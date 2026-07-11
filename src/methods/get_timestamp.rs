@@ -156,7 +156,10 @@ mod tests {
         // One billion seconds after 1582-10-15, i.e. the year 1614: expressed
         // relative to UNIX_EPOCH so the test runs on platforms that cannot
         // represent the Gregorian epoch itself.
-        let t = UNIX_EPOCH - (GREGORIAN_OFFSET - Duration::from_secs(1_000_000_000));
+        let t = UNIX_EPOCH
+            - GREGORIAN_OFFSET
+                .checked_sub(Duration::from_secs(1_000_000_000))
+                .expect("subtraction should succeed");
         let uuid = UUID::from_parts_v1(0x6fc1_0000, 0x86f2, 0x23, 0x1234, [1, 2, 3, 4, 5, 6]);
         let ts = uuid
             .get_timestamp()
@@ -166,7 +169,10 @@ mod tests {
 
     #[test]
     fn v6_timestamp_roundtrip() {
-        let t = UNIX_EPOCH - (GREGORIAN_OFFSET - Duration::from_secs(1_000_000_000));
+        let t = UNIX_EPOCH
+            - GREGORIAN_OFFSET
+                .checked_sub(Duration::from_secs(1_000_000_000))
+                .expect("subtraction should succeed");
         let uuid = UUID::from_parts_v6(0x0238_6f26, 0xfc10, 0x6000, 0x1234, [1, 2, 3, 4, 5, 6]);
         let ts = uuid
             .get_timestamp()

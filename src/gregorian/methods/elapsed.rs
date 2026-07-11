@@ -43,7 +43,13 @@ mod tests {
         // The second reading is taken later, so the difference of the two
         // falls short of the epoch offset by exactly the time between the
         // readings.
-        let skew = GREGORIAN_OFFSET - (since_gregorian - since_unix);
+        let skew = GREGORIAN_OFFSET
+            .checked_sub(
+                since_gregorian
+                    .checked_sub(since_unix)
+                    .expect("subtraction should succeed"),
+            )
+            .expect("subtraction should succeed");
 
         assert!(
             skew < Duration::from_secs(1),
