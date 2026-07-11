@@ -1,7 +1,7 @@
 use crate::{NodeId, NODE_ID_BYTES};
 
 impl NodeId {
-    /// Returns a reference to the inner byte array.
+    /// Returns a mutable reference to the inner byte array.
     #[must_use]
     pub const fn as_bytes_mut(&mut self) -> &mut [u8; NODE_ID_BYTES] {
         &mut self.bytes
