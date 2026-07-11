@@ -8,11 +8,19 @@ use serde::{
 use crate::{UUID, UUID_BYTES};
 
 impl Serialize for UUID {
+    /// Serializes as the canonical hyphenated string for human-readable
+    /// formats (such as JSON), and as the inner 16-byte array for binary
+    /// formats (such as bincode or postcard). Fixed-size arrays carry no
+    /// length prefix, so the binary encoding is exactly the 16 raw bytes.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.to_string())
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&self.to_string())
+        } else {
+            self.bytes.serialize(serializer)
+        }
     }
 }
 
@@ -87,11 +95,20 @@ impl<'de> Visitor<'de> for UUIDVisitor {
 }
 
 impl<'de> Deserialize<'de> for UUID {
+    /// Human-readable formats keep the permissive
+    /// [`deserialize_any`](Deserializer::deserialize_any) path, so JSON
+    /// accepts a canonical string, a 16-element byte array, or a nonnegative
+    /// integer. Binary formats cannot support `deserialize_any`, so they read
+    /// back the 16-byte array that [`Serialize`] writes.
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(UUIDVisitor)
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(UUIDVisitor)
+        } else {
+            <[u8; UUID_BYTES]>::deserialize(deserializer).map(Self::from_bytes)
+        }
     }
 }
 
@@ -239,6 +256,85 @@ mod tests {
     fn invalid_negative_number() {
         let json = "-42";
         let res: Result<UUID, _> = serde_json::from_str(json);
+        assert!(res.is_err());
+    }
+
+    // bincode and postcard are not self-describing and report
+    // is_human_readable() == false, so the following tests exercise the
+    // binary path that deserialize_any cannot support.
+
+    #[test]
+    fn binary_serialization_is_the_identity() {
+        let uuid = sample_uuid();
+
+        let encoded =
+            bincode::serialize(&uuid).expect("bincode should serialize a UUID as its 16 raw bytes");
+
+        assert_eq!(encoded, uuid.bytes);
+    }
+
+    #[test]
+    fn round_trip_bincode_binary_format() {
+        let uuid = sample_uuid();
+
+        let encoded =
+            bincode::serialize(&uuid).expect("bincode should serialize a UUID as its 16 raw bytes");
+        let back: UUID = bincode::deserialize(&encoded).expect("bincode should round-trip a UUID");
+
+        assert_eq!(uuid, back);
+    }
+
+    #[test]
+    fn bincode_embeds_uuids_without_a_length_prefix() {
+        #[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug)]
+        struct Wrapper {
+            before: u8,
+            uuid: UUID,
+            after: u8,
+        }
+
+        let wrapper = Wrapper {
+            before: 0xAA,
+            uuid: sample_uuid(),
+            after: 0xBB,
+        };
+
+        let encoded = bincode::serialize(&wrapper).expect("bincode should serialize the wrapper");
+
+        assert_eq!(encoded.len(), 18);
+        assert_eq!(encoded[0], 0xAA);
+        assert_eq!(encoded[1..17], wrapper.uuid.bytes);
+        assert_eq!(encoded[17], 0xBB);
+
+        let back: Wrapper =
+            bincode::deserialize(&encoded).expect("bincode should round-trip the wrapper");
+
+        assert_eq!(wrapper, back);
+    }
+
+    #[test]
+    fn postcard_encodes_as_the_sixteen_raw_bytes() {
+        let uuid = sample_uuid();
+
+        let encoded = postcard::to_allocvec(&uuid).expect("postcard should serialize a UUID");
+
+        assert_eq!(encoded, uuid.bytes);
+    }
+
+    #[test]
+    fn round_trip_postcard_binary_format() {
+        let uuid = sample_uuid();
+
+        let encoded = postcard::to_allocvec(&uuid).expect("postcard should serialize a UUID");
+        let back: UUID = postcard::from_bytes(&encoded).expect("postcard should round-trip a UUID");
+
+        assert_eq!(uuid, back);
+    }
+
+    #[test]
+    fn postcard_rejects_truncated_input() {
+        let res: Result<UUID, _> = postcard::from_bytes(&sample_uuid().bytes[..10]);
+
         assert!(res.is_err());
     }
 
