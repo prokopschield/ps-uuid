@@ -211,10 +211,14 @@ mod tests {
 
     #[test]
     fn non_time_based_versions_return_none() {
-        for v in [3, 4, 5, 8] {
+        for v in [3u8, 4, 5, 8] {
             let mut bytes = [0u8; 16];
-            bytes[6] = v << 4;
-            let uuid = UUID::from_parts_v8(bytes);
+            bytes[6] = v << 4; // version nibble
+            bytes[8] = 0x80; // RFC 4122 variant
+
+            let uuid = UUID::from_bytes(bytes);
+
+            assert_eq!(uuid.get_version(), Some(v));
             assert!(
                 uuid.get_timestamp().is_none(),
                 "Non-time-based v{v} should return None"
