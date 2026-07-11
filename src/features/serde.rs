@@ -68,6 +68,22 @@ impl<'de> Visitor<'de> for UUIDVisitor {
     {
         Ok(UUID::from_bytes(v.to_be_bytes()))
     }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        self.visit_u128(u128::from(v))
+    }
+
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        let v = u64::try_from(v).map_err(|_| E::invalid_value(de::Unexpected::Signed(v), &self))?;
+
+        self.visit_u64(v)
+    }
 }
 
 impl<'de> Deserialize<'de> for UUID {
@@ -184,6 +200,39 @@ mod tests {
         let json = "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]";
         let res: Result<UUID, _> = serde_json::from_str(json);
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn deserialize_from_u64_number() {
+        let uuid: UUID = serde_json::from_str("42")
+            .expect("serde_json should deserialize a nonnegative integer");
+
+        assert_eq!(uuid, UUID::from(42u128));
+    }
+
+    #[test]
+    fn deserialize_from_u64_max() {
+        let uuid: UUID = serde_json::from_str(&u64::MAX.to_string())
+            .expect("serde_json should deserialize a nonnegative integer");
+
+        let mut expected = [0u8; 16];
+
+        expected[8..].fill(0xFF);
+
+        assert_eq!(uuid.bytes, expected);
+    }
+
+    #[test]
+    fn deserialize_from_positive_i64() {
+        use serde::de::value::{Error as ValueError, I64Deserializer};
+        use serde::Deserialize;
+
+        // serde_json routes nonnegative integers to visit_u64, so the i64
+        // path needs a signed-integer deserializer to be exercised.
+        let uuid = UUID::deserialize(I64Deserializer::<ValueError>::new(42))
+            .expect("a positive i64 should deserialize");
+
+        assert_eq!(uuid, UUID::from(42u128));
     }
 
     #[test]
