@@ -18,8 +18,10 @@ impl UUID {
     /// # Errors
     /// - [`UuidConstructionError::TimestampBeforeEpoch`] is returned while the
     ///   issued timestamp precedes 1601-01-01, the start of the `FILETIME`
-    ///   epoch: a fresh state starts at 1582-10-15, so the error persists
-    ///   until a reading at or after 1601-01-01 is adopted.
+    ///   epoch: a fresh state starts at the earliest instant the platform
+    ///   clock can represent, no later than 1601-01-01, so on platforms whose
+    ///   clock reaches back to 1582-10-15 the error persists until a reading
+    ///   at or after 1601-01-01 is adopted.
     ///
     /// Because the state is shared with the version-1 family, adoption of
     /// clock readings is capped at the 60-bit RFC 4122 range (through
