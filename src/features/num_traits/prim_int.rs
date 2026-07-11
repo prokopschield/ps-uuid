@@ -48,24 +48,36 @@ impl PrimInt for UUID {
         Self::from_u128(self.to_u128().rotate_right(n))
     }
 
+    /// Shifts the bits to the left by `n`, masking the shift amount modulo
+    /// 128. Left shifts are identical for signed and unsigned operands, so
+    /// this is equivalent to [`unsigned_shl`](PrimInt::unsigned_shl).
     #[inline]
     fn signed_shl(self, n: u32) -> Self {
-        Self::from_u128((self.to_u128().cast_signed() << n).cast_unsigned())
+        Self::from_u128(self.to_u128().wrapping_shl(n))
     }
 
+    /// Shifts the bits to the right by `n`, sign-extending from bit 127
+    /// (arithmetic shift) and masking the shift amount modulo 128, consistent
+    /// with the `>>` operator's wrapping semantics.
     #[inline]
     fn signed_shr(self, n: u32) -> Self {
-        Self::from_u128((self.to_u128().cast_signed() >> n).cast_unsigned())
+        Self::from_u128(self.to_u128().cast_signed().wrapping_shr(n).cast_unsigned())
     }
 
+    /// Shifts the bits to the left by `n`, masking the shift amount modulo
+    /// 128, consistent with the `<<` operator and
+    /// [`WrappingShl`](num_traits::WrappingShl).
     #[inline]
     fn unsigned_shl(self, n: u32) -> Self {
-        Self::from_u128(self.to_u128() << n)
+        Self::from_u128(self.to_u128().wrapping_shl(n))
     }
 
+    /// Shifts the bits to the right by `n`, filling zeros in the most
+    /// significant bits and masking the shift amount modulo 128, consistent
+    /// with the `>>` operator and [`WrappingShr`](num_traits::WrappingShr).
     #[inline]
     fn unsigned_shr(self, n: u32) -> Self {
-        Self::from_u128(self.to_u128() >> n)
+        Self::from_u128(self.to_u128().wrapping_shr(n))
     }
 
     #[inline]
@@ -120,6 +132,45 @@ mod tests {
         let base = UUID::from(2u128);
 
         assert_eq!(PrimInt::pow(base, 128), UUID::nil());
+    }
+
+    #[test]
+    fn shifts_agree_with_the_operators() {
+        // The high bit is clear, so signed_shr also agrees with the logical
+        // `>>` operator.
+        let uuid = UUID::from(0x5EAD_BEEF_CAFE_BABE_1234_5678_9ABC_DEF0u128);
+
+        for n in [0u32, 1, 64, 127, 128, 200] {
+            assert_eq!(uuid.unsigned_shl(n), uuid << n, "unsigned_shl({n})");
+            assert_eq!(uuid.unsigned_shr(n), uuid >> n, "unsigned_shr({n})");
+            assert_eq!(uuid.signed_shl(n), uuid << n, "signed_shl({n})");
+            assert_eq!(uuid.signed_shr(n), uuid >> n, "signed_shr({n})");
+        }
+    }
+
+    #[test]
+    fn signed_shl_agrees_with_unsigned_shl_on_high_bit_values() {
+        let uuid = UUID::from(u128::MAX - 0xFF);
+
+        for n in [0u32, 1, 127, 128, 200] {
+            assert_eq!(uuid.signed_shl(n), uuid.unsigned_shl(n), "amount {n}");
+        }
+    }
+
+    #[test]
+    fn signed_shr_sign_extends() {
+        let negative = UUID::from(1u128 << 127);
+
+        assert_eq!(
+            negative.signed_shr(127),
+            UUID::max(),
+            "An arithmetic shift must fill with the sign bit."
+        );
+        assert_eq!(
+            negative.signed_shr(128),
+            negative,
+            "The shift amount is masked modulo 128."
+        );
     }
 
     #[test]
