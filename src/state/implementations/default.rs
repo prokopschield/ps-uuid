@@ -14,9 +14,9 @@ impl Default for State {
         // represent: the UUID epoch (1582-10-15) where representable, else
         // the FILETIME epoch (1601-01-01, the exact floor on Windows), else
         // the Unix epoch (targets whose clock starts at 1970-01-01, such as
-        // wasm32-unknown-unknown). Every clock reading the platform can
-        // produce compares greater than the floor, so a fresh state adopts
-        // the first sane reading it sees.
+        // wasm32-unknown-unknown). No adoptable reading the platform clock
+        // can produce precedes the floor, so a fresh state adopts the first
+        // sane reading it sees.
         let floor = UNIX_EPOCH
             .checked_sub(GREGORIAN_OFFSET)
             .or_else(|| UNIX_EPOCH.checked_sub(FILETIME_OFFSET))
