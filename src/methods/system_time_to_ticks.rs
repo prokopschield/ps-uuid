@@ -1,6 +1,6 @@
-use std::time::SystemTime;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{Gregorian, UuidConstructionError, UUID};
+use crate::{gregorian::GREGORIAN_OFFSET, UuidConstructionError, UUID};
 
 impl UUID {
     /// Converts a `SystemTime` into an RFC 4122 timestamp (ticks).
@@ -21,9 +21,20 @@ impl UUID {
     /// - [`UuidConstructionError::TimestampOverflow`] if `time` is so far in
     ///   the future that the tick count exceeds \( 2^{60} - 1 \).
     pub fn system_time_to_ticks(time: SystemTime) -> Result<u64, UuidConstructionError> {
-        // Calculate the duration since the Gregorian epoch.
-        // The `let-else` block provides a concise way to handle the error case.
-        let Ok(duration_since_epoch) = time.duration_since(Gregorian::epoch()) else {
+        // Shift the reading forward by the epoch offset instead of comparing
+        // against a materialized 1582-10-15 instant, which platforms with an
+        // unsigned clock representation (e.g. Windows, whose clock starts at
+        // 1601-01-01) cannot represent. A reading the shift overflows lies
+        // within about 387 years of the platform maximum, which every std
+        // target places far beyond the 60-bit tick range, so
+        // `TimestampOverflow` is the accurate error.
+        let Some(shifted) = time.checked_add(GREGORIAN_OFFSET) else {
+            return Err(UuidConstructionError::TimestampOverflow);
+        };
+
+        // The shifted reading precedes 1970-01-01 exactly when the original
+        // reading precedes the Gregorian epoch.
+        let Ok(duration_since_epoch) = shifted.duration_since(UNIX_EPOCH) else {
             return Err(UuidConstructionError::TimestampBeforeEpoch);
         };
 
@@ -41,7 +52,7 @@ impl UUID {
 mod tests {
     use std::time::Duration;
 
-    use crate::DurationToTicksError;
+    use crate::{DurationToTicksError, Gregorian};
 
     use super::*;
 
