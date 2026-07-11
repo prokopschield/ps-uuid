@@ -4,6 +4,9 @@ impl UUID {
     /// Returns the node identifier, or `None` if the UUID does not carry one.
     ///
     /// Versions 1, 2, and 6 and UUIDs of the DCOM variant carry a node
+    /// identifier. The DCOM interpretation is this crate's own (see
+    /// [`UUID::new_dcom`]); for Microsoft GUIDs from other sources, such as
+    /// COM interface identifiers, the returned bytes are not a node
     /// identifier.
     #[must_use]
     pub const fn get_node_id(&self) -> Option<NodeId> {

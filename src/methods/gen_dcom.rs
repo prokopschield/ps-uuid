@@ -11,7 +11,9 @@ impl UUID {
     /// sequence bits the DCOM variant retains are exhausted (8192 UUIDs in one
     /// tick) the generator borrows the next tick, so results stay distinct
     /// even under a frozen or coarse system clock. Borrowed timestamps may run
-    /// slightly ahead of the real clock.
+    /// slightly ahead of the real clock. The result uses this crate's
+    /// `FILETIME` encoding; see [`UUID::new_dcom`] for the layout and its
+    /// caveats.
     ///
     /// # Errors
     /// - [`UuidConstructionError::TimestampBeforeEpoch`] is returned while the

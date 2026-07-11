@@ -14,6 +14,11 @@ impl UUID {
     /// with the local ID, so the returned instant is truncated to the surviving
     /// high bits: its resolution is about 429 seconds, and it never exceeds the
     /// true generation time.
+    ///
+    /// UUIDs of the DCOM variant are decoded using this crate's `FILETIME`
+    /// encoding (see [`UUID::new_dcom`]); for Microsoft GUIDs from other
+    /// sources, such as COM interface identifiers, the returned instant is
+    /// meaningless.
     #[must_use]
     pub fn get_timestamp(&self) -> Option<SystemTime> {
         match (self.get_version(), self.get_variant()) {

@@ -13,6 +13,9 @@ impl UUID {
     ///
     /// # Returns
     /// A UUID with the DCOM variant (0b110) set
+    ///
+    /// The first three fields are stored little-endian; [`UUID::new_dcom`]
+    /// documents the timestamp encoding this layout serves.
     #[must_use]
     pub fn from_parts_dcom(
         time_low: u32,

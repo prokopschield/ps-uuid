@@ -18,6 +18,16 @@ impl UUID {
     /// through [`UUID::get_timestamp`]; a finer-grained input is floored to the
     /// start of its enclosing interval.
     ///
+    /// The `FILETIME` layout is this crate's own encoding for time-based
+    /// Microsoft-variant UUIDs. Microsoft-variant GUIDs in the wild, such as
+    /// the COM interface identifiers `IUnknown` and `IDispatch`, are
+    /// hand-allocated constants that embed no timestamp; Microsoft's own
+    /// time-based GUIDs historically used the version-1 algorithm under the
+    /// [`Variant::OSF`](crate::Variant::OSF) encoding. The little-endian field
+    /// storage also means the canonical string form of the result differs from
+    /// how Windows renders the same in-memory `GUID`: the first three groups
+    /// appear byte-swapped.
+    ///
     /// The clock sequence and node ID are supplied by the caller and serve the
     /// same disambiguating role as in a version-1 UUID; the variant bits
     /// overwrite the top three bits of the clock sequence, leaving 13 bits.

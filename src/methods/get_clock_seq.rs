@@ -7,7 +7,10 @@ impl UUID {
     /// overwrites `clock_seq_low` with the local domain, so only the six high
     /// bits survive; they are returned at their original positions (bits 8..14),
     /// with the low byte cleared. UUIDs of the DCOM variant carry a 13-bit clock
-    /// sequence, as the variant occupies the top three bits.
+    /// sequence, as the variant occupies the top three bits. This decoding is
+    /// this crate's own (see [`UUID::new_dcom`]); for Microsoft GUIDs from
+    /// other sources, such as COM interface identifiers, the returned value is
+    /// meaningless.
     #[must_use]
     pub const fn get_clock_seq(&self) -> Option<u16> {
         match (self.get_version(), self.get_variant()) {
