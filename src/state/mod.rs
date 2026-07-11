@@ -38,6 +38,9 @@ pub struct State {
 /// from identical clock sequences and can emit identical version-1, version-2,
 /// version-6, and DCOM UUIDs. Programs that fork and keep generating UUIDs in
 /// both processes should reseed the child, for example by calling
-/// `STATE.lock().set_node_id(NodeId::random())` after the fork.
+/// `STATE.lock().set_node_id(NodeId::random())` after the fork. Reseeding the
+/// node ID does not protect DCOM generation, which embeds a caller-supplied
+/// node ID: forked callers of [`UUID::gen_dcom`](crate::UUID::gen_dcom) must
+/// pass the child a distinct node ID instead.
 pub static STATE: std::sync::LazyLock<Arc<Mutex<State>>> =
     std::sync::LazyLock::new(|| Arc::new(Mutex::new(State::default())));
