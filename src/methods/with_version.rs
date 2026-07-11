@@ -2,6 +2,9 @@ use crate::UUID;
 
 impl UUID {
     /// Returns a copy with the given version and the [`Variant::OSF`](crate::Variant::OSF) variant.
+    ///
+    /// The version field is four bits wide, so only the low nibble of
+    /// `version` is stored; the high bits are discarded without error.
     #[must_use]
     pub const fn with_version(self, version: u8) -> Self {
         let mut uuid = self;

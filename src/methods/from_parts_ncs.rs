@@ -8,6 +8,10 @@ impl UUID {
     /// - `address_family`: Network address family (0-13).
     /// - `address`: 7-byte node ID (e.g., extended MAC address or unique host identifier).
     ///
+    /// The address family is not validated: setting the NCS variant clears
+    /// bit 7 of the stored byte, so a value above 127 is silently altered.
+    /// Use [`UUID::new_ncs`] to have the 0-13 range enforced.
+    ///
     /// # NCS UUID Structure
     /// - Timestamp (48 bits): Raw timestamp bytes in 4-microsecond units since 1980-01-01 00:00 UTC.
     /// - Reserved (16 bits): Set to 0.

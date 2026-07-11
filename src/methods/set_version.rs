@@ -2,6 +2,9 @@ use crate::UUID;
 
 impl UUID {
     /// Sets the version in place and sets the variant to [`Variant::OSF`](crate::Variant::OSF).
+    ///
+    /// The version field is four bits wide, so only the low nibble of
+    /// `version` is stored; the high bits are discarded without error.
     pub const fn set_version(&mut self, version: u8) {
         self.bytes[6] &= 0x0F;
         self.bytes[6] |= version << 4;
