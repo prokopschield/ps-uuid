@@ -5,7 +5,7 @@ impl UUID {
     ///
     /// Steps
     /// 1. Hash `namespace.bytes || name` with SHA-1.
-    /// 2. Pass the first 16 bytes of the digest to `from_parts_v5`.
+    /// 2. Pass the digest to `from_parts_v5`.
     #[must_use]
     pub fn new_v5<N>(namespace: &Self, name: N) -> Self
     where
@@ -18,7 +18,7 @@ impl UUID {
 
         let digest = hasher.finalize();
 
-        Self::from_parts_v5(&digest[..16])
+        Self::from_parts_v5(digest)
     }
 }
 

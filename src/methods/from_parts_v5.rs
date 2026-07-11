@@ -9,19 +9,20 @@ impl UUID {
     ///
     /// The caller must supply the digest that results from hashing
     /// `namespace.bytes || name`.
-    /// The first 16 bytes of the digest are copied into the UUID; the
-    /// version and variant fields are then fixed via `.with_version(5)`.
+    /// The first 16 bytes of the digest are copied into the UUID and the
+    /// remaining 4 are discarded; the version and variant fields are then
+    /// fixed via `.with_version(5)`.
     #[must_use]
-    pub fn from_parts_v5<D>(digest: D) -> Self
-    where
-        D: AsRef<[u8]>,
-    {
-        let digest = digest.as_ref();
-        let mut uuid = Self::nil();
+    pub const fn from_parts_v5(digest: [u8; 20]) -> Self {
+        let mut bytes = [0u8; 16];
+        let mut i = 0;
 
-        uuid.bytes[..digest.len().min(16)].copy_from_slice(&digest[..digest.len().min(16)]);
+        while i < 16 {
+            bytes[i] = digest[i];
+            i += 1;
+        }
 
-        uuid.with_version(5)
+        Self { bytes }.with_version(5)
     }
 }
 
