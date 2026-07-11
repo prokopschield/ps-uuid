@@ -12,7 +12,9 @@ use crate::NodeId;
 pub struct State {
     /// The timestamp of the most recently issued tick. It never decreases,
     /// and may run slightly ahead of the wall clock while the clock stands
-    /// still or moves backward.
+    /// still or moves backward. Clock readings that are not representable as
+    /// a 60-bit RFC 4122 tick count are never adopted, so the value stays
+    /// within the range the time-based constructors accept.
     pub last_ts: SystemTime,
     /// The node identifier embedded in generated UUIDs.
     pub node_id: NodeId,

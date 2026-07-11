@@ -14,10 +14,12 @@ impl State {
     /// backward-moving clock.
     ///
     /// 1. If the provided timestamp is more than one 100 ns tick after this
-    ///    [`State`]'s last timestamp, it is stored as the new last timestamp
-    ///    and returned with the clock sequence unchanged.
-    /// 2. Otherwise (a same-tick call or a backward-moving clock), the last
-    ///    timestamp is kept and the clock sequence is incremented modulo 2¹⁴.
+    ///    [`State`]'s last timestamp and is representable as a 60-bit
+    ///    RFC 4122 tick count, it is stored as the new last timestamp and
+    ///    returned with the clock sequence unchanged.
+    /// 2. Otherwise (a same-tick call, a backward-moving clock, or a reading
+    ///    too far in the future to represent), the last timestamp is kept and
+    ///    the clock sequence is incremented modulo 2¹⁴.
     /// 3. Once 2¹³ sequence values have been issued for the current tick (the
     ///    capacity of the 13 sequence bits a DCOM UUID retains), the last
     ///    timestamp advances by one tick, borrowing from the future rather
@@ -25,6 +27,9 @@ impl State {
     ///
     /// The returned timestamp is therefore non-decreasing across calls and may
     /// run slightly ahead of the provided clock while the clock stands still.
+    /// An unrepresentable reading is never adopted, so a transient bogus clock
+    /// cannot poison the state; generation continues on the last good tick and
+    /// resumes normal adoption once the clock recovers.
     ///
     /// # Usage
     ///
@@ -35,12 +40,13 @@ impl State {
     /// let (timestamp, clock_seq) = STATE.lock().next(SystemTime::now());
     /// ```
     pub fn next(&mut self, timestamp: SystemTime) -> (SystemTime, u16) {
-        if timestamp > self.last_ts + TICK {
+        if timestamp > self.last_ts + TICK && Self::is_adoptable(timestamp) {
             // The clock advanced past the current tick: open a new window.
             self.last_ts = timestamp;
             self.stalled = 0;
         } else {
-            // Same tick, or a backward-moving clock: advance the sequence.
+            // Same tick, a backward-moving clock, or an unrepresentable
+            // reading: advance the sequence.
             self.seq = (self.seq.wrapping_add(1)) & 0x3FFF;
             self.stalled += 1;
 
@@ -63,7 +69,7 @@ mod tests {
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
 
-    use crate::{NodeId, State, STATE};
+    use crate::{Gregorian, NodeId, State, STATE, UUID};
 
     #[test]
     fn monotonic_and_unique() {
@@ -122,6 +128,77 @@ mod tests {
         // 20 000 calls at one instant span exactly ⌈20 000 / 8192⌉ = 3 ticks.
         assert_eq!(ticks.len(), 3);
         assert!(previous <= frozen + Duration::from_nanos(200));
+    }
+
+    /// A reading beyond the representable 60-bit tick range must not be
+    /// adopted: the sequence advances on the last good tick instead, so a
+    /// transient bogus clock cannot poison the state.
+    #[test]
+    fn far_future_reading_is_not_adopted() {
+        let mut state = State {
+            last_ts: UNIX_EPOCH,
+            node_id: NodeId::random(),
+            seq: 0,
+            stalled: 0,
+            seq_v2: 0,
+        };
+
+        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+
+        let (timestamp, seq) = state.next(bogus);
+
+        assert_eq!(timestamp, UNIX_EPOCH);
+        assert_eq!(seq, 1);
+        assert!(UUID::system_time_to_ticks(timestamp).is_ok());
+    }
+
+    /// After a far-future glitch, a sane reading resumes normal adoption.
+    #[test]
+    fn recovers_after_far_future_glitch() {
+        let mut state = State {
+            last_ts: UNIX_EPOCH,
+            node_id: NodeId::random(),
+            seq: 0,
+            stalled: 0,
+            seq_v2: 0,
+        };
+
+        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+
+        for _ in 0..10 {
+            let (timestamp, _) = state.next(bogus);
+
+            assert!(UUID::system_time_to_ticks(timestamp).is_ok());
+        }
+
+        let sane = UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+
+        let (timestamp, _) = state.next(sane);
+
+        assert_eq!(timestamp, sane);
+    }
+
+    /// The last representable second is adopted; one second later is not.
+    #[test]
+    fn adoption_boundary_at_the_maximum_tick() {
+        let mut state = State {
+            last_ts: UNIX_EPOCH,
+            node_id: NodeId::random(),
+            seq: 0,
+            stalled: 0,
+            seq_v2: 0,
+        };
+
+        let last_within = Gregorian::epoch() + Duration::from_secs(115_292_150_460);
+        let first_beyond = Gregorian::epoch() + Duration::from_secs(115_292_150_461);
+
+        let (timestamp, _) = state.next(last_within);
+
+        assert_eq!(timestamp, last_within);
+
+        let (timestamp, _) = state.next(first_beyond);
+
+        assert_eq!(timestamp, last_within);
     }
 
     /// A backward-moving clock must neither regress the returned timestamp

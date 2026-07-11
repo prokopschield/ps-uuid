@@ -18,7 +18,8 @@ impl State {
     ///
     /// The returned timestamp tracks the shared last timestamp and is
     /// non-decreasing across calls; it may run slightly ahead of the provided
-    /// clock while the clock stands still.
+    /// clock while the clock stands still. A reading too far in the future to
+    /// represent as a 60-bit RFC 4122 tick count is never adopted.
     ///
     /// # Usage
     ///
@@ -29,9 +30,9 @@ impl State {
     /// let (timestamp, clock_seq) = STATE.lock().next_v2(SystemTime::now());
     /// ```
     pub fn next_v2(&mut self, timestamp: SystemTime) -> (SystemTime, u16) {
-        if timestamp > self.last_ts + TICK {
-            // The clock advanced past the current tick: adopt it and reset the
-            // shared tick budget that `next` maintains.
+        if timestamp > self.last_ts + TICK && Self::is_adoptable(timestamp) {
+            // The clock advanced past the current tick and is representable:
+            // adopt it and reset the shared tick budget that `next` maintains.
             self.last_ts = timestamp;
             self.stalled = 0;
         }
@@ -49,7 +50,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use crate::{NodeId, State};
+    use crate::{Gregorian, NodeId, State};
 
     /// The six clock-sequence bits that survive in a version-2 UUID.
     const fn surviving_bits(seq: u16) -> u16 {
@@ -109,6 +110,25 @@ mod tests {
             surviving_bits(first),
             "The 65th call must wrap back to the first surviving value."
         );
+    }
+
+    /// A reading beyond the representable 60-bit tick range must not be
+    /// adopted into the shared last timestamp.
+    #[test]
+    fn far_future_reading_is_not_adopted() {
+        let mut state = State {
+            last_ts: UNIX_EPOCH,
+            node_id: NodeId::random(),
+            seq: 0,
+            stalled: 0,
+            seq_v2: 0,
+        };
+
+        let bogus = Gregorian::epoch() + Duration::from_secs(200_000_000_000);
+
+        let (timestamp, _) = state.next_v2(bogus);
+
+        assert_eq!(timestamp, UNIX_EPOCH);
     }
 
     /// Interleaved `next` traffic must not change the version-2 sequence.
