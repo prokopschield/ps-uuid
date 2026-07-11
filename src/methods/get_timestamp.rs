@@ -1,14 +1,37 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::{methods::FILETIME_EPOCH_OFFSET, Gregorian, UUID};
+use crate::{gregorian::GREGORIAN_OFFSET, methods::FILETIME_EPOCH_OFFSET, UUID};
 
 // NCS epoch: 1980-01-01T00:00:00Z
 const NCS_EPOCH: Duration = Duration::from_secs(315_532_800);
 
+/// Converts a 60-bit Gregorian tick count into a `SystemTime`, returning
+/// `None` when the platform clock cannot represent the instant (for example,
+/// an instant before 1601-01-01 on Windows).
+fn gregorian_ticks_to_system_time(ticks: u64) -> Option<SystemTime> {
+    // Split into seconds and sub-second ticks before scaling to nanoseconds:
+    // `ticks * 100` overflows u64 for far-future 60-bit tick counts (past
+    // roughly year 2167).
+    #[allow(clippy::cast_possible_truncation)]
+    let since_gregorian = Duration::new(ticks / 10_000_000, ((ticks % 10_000_000) * 100) as u32);
+
+    since_gregorian.checked_sub(GREGORIAN_OFFSET).map_or_else(
+        || {
+            GREGORIAN_OFFSET
+                .checked_sub(since_gregorian)
+                .and_then(|until_unix| UNIX_EPOCH.checked_sub(until_unix))
+        },
+        |since_unix| UNIX_EPOCH.checked_add(since_unix),
+    )
+}
+
 impl UUID {
     /// Extract the embedded timestamp as a `SystemTime`, if present.
     ///
-    /// Returns `None` if the UUID does not encode a timestamp.
+    /// Returns `None` if the UUID does not encode a timestamp, or if the
+    /// platform clock cannot represent the embedded instant (for example,
+    /// a version-1 timestamp before 1601-01-01 on Windows, whose clock
+    /// representation starts at that date).
     ///
     /// Version-2 (DCE Security) UUIDs overwrite the low 32 bits of the timestamp
     /// with the local ID, so the returned instant is truncated to the surviving
@@ -40,14 +63,7 @@ impl UUID {
                 let timestamp: u64 =
                     (u64::from(time_hi) << 48) | (u64::from(time_mid) << 32) | u64::from(time_low);
 
-                #[allow(clippy::cast_possible_truncation)]
-                Some(
-                    Gregorian::epoch()
-                        + Duration::new(
-                            timestamp / 10_000_000,
-                            ((timestamp % 10_000_000) * 100) as u32,
-                        ),
-                )
+                gregorian_ticks_to_system_time(timestamp)
             }
             // v6: 60-bit timestamp, 100ns intervals since 1582-10-15, reordered
             (Some(6), crate::Variant::OSF) => {
@@ -63,18 +79,7 @@ impl UUID {
                     | (u64::from(time_mid) << 12)
                     | u64::from(time_low);
 
-                // Split into seconds and sub-second ticks before scaling to
-                // nanoseconds: `timestamp * 100` overflows u64 for far-future
-                // 60-bit tick counts (past roughly year 2167), so use the same
-                // divmod form as the v1/v2 branch.
-                #[allow(clippy::cast_possible_truncation)]
-                Some(
-                    Gregorian::epoch()
-                        + Duration::new(
-                            timestamp / 10_000_000,
-                            ((timestamp % 10_000_000) * 100) as u32,
-                        ),
-                )
+                gregorian_ticks_to_system_time(timestamp)
             }
             // v7: 48-bit Unix ms timestamp, bytes 0..6
             (Some(7), crate::Variant::OSF) => {
@@ -101,13 +106,10 @@ impl UUID {
                 if filetime < FILETIME_EPOCH_OFFSET {
                     let unix_100ns = FILETIME_EPOCH_OFFSET - filetime;
 
-                    Some(
-                        UNIX_EPOCH
-                            - Duration::new(
-                                unix_100ns / 10_000_000,
-                                (unix_100ns % 10_000_000) as u32 * 100,
-                            ),
-                    )
+                    UNIX_EPOCH.checked_sub(Duration::new(
+                        unix_100ns / 10_000_000,
+                        (unix_100ns % 10_000_000) as u32 * 100,
+                    ))
                 } else {
                     let unix_100ns = filetime - FILETIME_EPOCH_OFFSET;
 
@@ -138,7 +140,7 @@ impl UUID {
 #[cfg(test)]
 mod tests {
     #![allow(clippy::cast_possible_truncation, clippy::expect_used)]
-    use crate::Variant;
+    use crate::{Gregorian, Variant};
 
     use super::*;
     use std::time::{Duration, UNIX_EPOCH};
